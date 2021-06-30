@@ -15,6 +15,11 @@
     <dependencies>
         <dependency>
             <groupId>com.lsz.mall</groupId>
+            <artifactId>lsz-mall-flyway</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.lsz.mall</groupId>
             <artifactId>lsz-mall-base</artifactId>
             <version>${project.version}</version>
         </dependency>
