@@ -31,7 +31,8 @@ public class ProductAttrServiceImpl implements ProductAttrService {
 
         ProductAttribute productAttribute = new ProductAttribute();
         BeanUtils.copyProperties(productAttributeParam, productAttribute);
-        int count = productAttrDao.insertSelective(productAttribute);
+//        int count = productAttrDao.insertSelective(productAttribute);
+        int count = productAttrDao.insert(productAttribute);
 
         ProductAttributeCategory productAttributeCategory = productAttrCategoryDao.selectByPrimaryKey(productAttribute.getProductAttributeCategoryId());
         if (productAttribute.getType() == 0) {
