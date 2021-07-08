@@ -1,6 +1,8 @@
 package com.lsz.mall.base.vo;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.github.pagehelper.PageInfo;
+import com.lsz.mall.base.entity.ProductAttribute;
 import lombok.Data;
 import org.springframework.data.domain.Page;
 
@@ -56,4 +58,13 @@ public class CommonPage<T> {
         return result;
     }
 
+    public static <T> CommonPage<T> restPage(IPage<T> page) {
+        CommonPage<T> result = new CommonPage<T>();
+        result.setTotalPage((int) page.getPages());
+        result.setPageNum((int) page.getCurrent());
+        result.setPageSize((int) page.getSize());
+        result.setTotal(page.getTotal());
+        result.setList(page.getRecords());
+        return result;
+    }
 }

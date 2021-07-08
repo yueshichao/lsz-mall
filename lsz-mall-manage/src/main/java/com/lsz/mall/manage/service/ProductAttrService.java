@@ -1,5 +1,6 @@
 package com.lsz.mall.manage.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.lsz.mall.base.entity.ProductAttribute;
 import com.lsz.mall.base.entity.ProductAttributeParam;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,7 +14,7 @@ public interface ProductAttrService {
      * @param cid 分类id
      * @param type 0->规格；1->参数
      */
-    List<ProductAttribute> getList(Long cid, Integer type, Integer pageSize, Integer pageNum);
+    IPage<ProductAttribute> getPage(Long cid, Integer type, Integer pageSize, Integer pageNum);
 
     /**
      * 添加商品分类下的属性
