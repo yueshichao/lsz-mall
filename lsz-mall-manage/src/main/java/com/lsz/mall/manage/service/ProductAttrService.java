@@ -1,36 +1,40 @@
 package com.lsz.mall.manage.service;
 
-import com.lsz.mall.base.entity.PmsProductAttributeCategory;
+import com.lsz.mall.base.entity.ProductAttribute;
+import com.lsz.mall.base.entity.ProductAttributeParam;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 public interface ProductAttrService {
 
     /**
-     * 创建属性分类
+     * 根据分类分页获取商品属性
+     * @param cid 分类id
+     * @param type 0->规格；1->参数
      */
-    int create(String name);
+    List<ProductAttribute> getList(Long cid, Integer type, Integer pageSize, Integer pageNum);
 
     /**
-     * 修改属性分类
+     * 添加商品分类下的属性
      */
-    int update(Long id, String name);
+    @Transactional
+    int create(ProductAttributeParam pmsProductAttributeParam);
 
     /**
-     * 删除属性分类
+     * 修改商品属性
      */
-    int delete(Long id);
+    int update(Long id, ProductAttributeParam productAttributeParam);
 
     /**
-     * 获取属性分类详情
+     * 获取单个商品属性信息
      */
-    PmsProductAttributeCategory getItem(Long id);
+    ProductAttribute getItem(Long id);
 
     /**
-     * 分页查询属性分类
+     * 批量删除商品属性
      */
-    List<PmsProductAttributeCategory> getList(Integer pageSize, Integer pageNum);
-
-
+    @Transactional
+    int delete(List<Long> ids);
 
 }

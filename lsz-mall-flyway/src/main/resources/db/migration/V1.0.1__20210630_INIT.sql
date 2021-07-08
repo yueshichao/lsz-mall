@@ -1,4 +1,6 @@
 
+-- CREATE DATABASE lsz_mall CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci IF NOT EXISTS;
+
 CREATE TABLE `pms_product_attribute_category` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `name` varchar(64) DEFAULT NULL,

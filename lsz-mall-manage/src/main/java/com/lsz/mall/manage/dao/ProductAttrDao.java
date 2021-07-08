@@ -1,6 +1,6 @@
 package com.lsz.mall.manage.dao;
 
-import com.lsz.mall.base.entity.PmsProductAttributeCategory;
+import com.lsz.mall.base.entity.ProductAttribute;
 import org.apache.ibatis.annotations.Mapper;
 import org.springframework.stereotype.Repository;
 
@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ProductAttrDao {
 
-    int insertSelective(PmsProductAttributeCategory productAttributeCategory);
+    int insertSelective(ProductAttribute productAttribute);
 
 }
