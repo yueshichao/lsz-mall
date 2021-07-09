@@ -1,6 +1,5 @@
 package com.lsz.mall.manage.controller;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.lsz.mall.base.entity.ProductAttribute;
 import com.lsz.mall.base.entity.ProductAttributeParam;
 import com.lsz.mall.base.entity.ResponseMessage;
@@ -13,8 +12,6 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Slf4j
 @RestController
@@ -41,15 +38,15 @@ public class ProductAttrController {
     @ApiImplicitParams({@ApiImplicitParam(name = "type", value = "0表示属性，1表示参数", required = true, paramType = "query", dataType = "integer")})
     @RequestMapping(value = "/list/{cid}", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseMessage getList(@PathVariable Long cid,
+    public ResponseMessage<CommonPage<ProductAttribute>> getList(@PathVariable Long cid,
                                                                  @RequestParam(value = "type") Integer type,
                                                                  @RequestParam(value = "pageSize", defaultValue = "5") Integer pageSize,
                                                                  @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum) {
 //        List<ProductAttribute> productAttributeList = productAttributeService.getPage(cid, type, pageSize, pageNum);
 //        return ResponseMessage.ok(CommonPage.restPage(productAttributeList));
 
-        IPage<ProductAttribute> page = productAttributeService.getPage(cid, type, pageSize, pageNum);
-        return ResponseMessage.ok(CommonPage.restPage(page));
+        CommonPage<ProductAttribute> page = productAttributeService.getPage(cid, type, pageSize, pageNum);
+        return ResponseMessage.ok(page);
 //        return ResponseMessage.ok(page);
     }
 

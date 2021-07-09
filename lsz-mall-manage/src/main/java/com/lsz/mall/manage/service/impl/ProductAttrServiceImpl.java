@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lsz.mall.base.entity.ProductAttribute;
 import com.lsz.mall.base.entity.ProductAttributeCategory;
 import com.lsz.mall.base.entity.ProductAttributeParam;
+import com.lsz.mall.base.vo.CommonPage;
 import com.lsz.mall.manage.dao.ProductAttrCategoryDao;
 import com.lsz.mall.manage.dao.ProductAttrDao;
 import com.lsz.mall.manage.service.ProductAttrService;
@@ -25,7 +26,7 @@ public class ProductAttrServiceImpl implements ProductAttrService {
     ProductAttrCategoryDao productAttrCategoryDao;
 
     @Override
-    public IPage<ProductAttribute> getPage(Long cid, Integer type, Integer pageSize, Integer pageNum) {
+    public CommonPage<ProductAttribute> getPage(Long cid, Integer type, Integer pageSize, Integer pageNum) {
         QueryWrapper<ProductAttribute> queryWrapper = new QueryWrapper<>();
         // 字段映射可行
 //        queryWrapper.eq("product_attribute_category_id", cid);
@@ -36,7 +37,7 @@ public class ProductAttrServiceImpl implements ProductAttrService {
         Page<ProductAttribute> p = new Page<>(pageNum, pageSize);
         IPage<ProductAttribute> page = productAttrDao.selectPage(p, queryWrapper);
 //        List<ProductAttribute> list = productAttrDao.selectList(queryWrapper);
-        return page;
+        return CommonPage.restPage(page);
     }
 
     @Override
