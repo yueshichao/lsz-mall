@@ -21,8 +21,12 @@ public class ResponseMessage<T> {
     public ResponseMessage() {
     }
 
+    public static <T> ResponseMessage<T> error() {
+        return error(500, "-1", null);
+    }
+
     public static <T> ResponseMessage<T> error(String message, Object... args) {
-        return error(500, "500", message);
+        return error(500, "-1", message);
     }
 
     public static <T> ResponseMessage<T> error(int status, String code, String message, Object... args) {

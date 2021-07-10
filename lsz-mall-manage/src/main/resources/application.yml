@@ -1,2 +1,27 @@
 server:
-  port: 8080
+  port: 7070
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      initial-size: 5 # 连接池初始化大小
+      min-idle: 10 # 最小空闲连接数
+      max-active: 20 # 最大连接数
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baselineOnMigrate: true
+    baselineVersion: 1
+
+mybatis:
+#  type-aliases-package: com.example.domain.model
+#  type-handlers-package: com.example.typehandler
+  mapper-locations:
+    - classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    default-fetch-size: 100
+    default-statement-timeout: 30
