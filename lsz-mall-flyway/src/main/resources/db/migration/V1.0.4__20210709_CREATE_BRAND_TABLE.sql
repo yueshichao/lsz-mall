@@ -11,7 +11,7 @@ CREATE TABLE `pms_brand` (
   `big_pic` varchar(255) DEFAULT NULL COMMENT '专区大图',
   `brand_story` text COMMENT '品牌故事',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=59 DEFAULT CHARSET=utf8 COMMENT='品牌表';
+) ENGINE=InnoDB AUTO_INCREMENT=59 DEFAULT CHARSET=utf8mb4 COMMENT='品牌表';
 
 
 -- 先借用macro的oss
