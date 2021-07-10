@@ -13,7 +13,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 
-@Controller
+@RestController
 @Api(description = "商品分类管理")
 @RequestMapping("/productCategory")
 public class ProductCategoryController {
