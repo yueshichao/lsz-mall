@@ -5,10 +5,9 @@ import lombok.Data;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
-import java.io.Serializable;
 
 @Data
-public class ProductCategoryBase implements Serializable {
+public class ProductCategoryBase {
 
     @ApiModelProperty(value = "上机分类的编号：0表示一级分类")
     protected Long parentId;
