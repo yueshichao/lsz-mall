@@ -1,14 +1,67 @@
 package com.lsz.mall.base.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
 import java.util.Date;
 
+
+/*
+{
+    "id": 26,
+    "brandId": 3,
+    "productCategoryId": 19,
+    "feightTemplateId": 0,
+    "productAttributeCategoryId": 3,
+    "name": "华为 HUAWEI P20 ",
+    "pic": "http://macro-oss.oss-cn-shenzhen.aliyuncs.com/mall/images/20180607/5ac1bf58Ndefaac16.jpg",
+    "productSn": "6946605",
+    "deleteStatus": 0,
+    "publishStatus": 1,
+    "newStatus": 1,
+    "recommandStatus": 1,
+    "verifyStatus": 0,
+    "sort": 100,
+    "sale": 0,
+    "price": 3788,
+    "promotionPrice": null,
+    "giftGrowth": 3788,
+    "giftPoint": 3788,
+    "usePointLimit": 0,
+    "subTitle": "AI智慧全面屏 6GB +64GB 亮黑色 全网通版 移动联通电信4G手机 双卡双待手机 双卡双待",
+    "originalPrice": 4288,
+    "stock": 1000,
+    "lowStock": 0,
+    "unit": "件",
+    "weight": 0,
+    "previewStatus": 1,
+    "serviceIds": "2,3,1",
+    "keywords": "",
+    "note": "",
+    "albumPics": "http://macro-oss.oss-cn-shenzhen.aliyuncs.com/mall/images/20180607/5ab46a3cN616bdc41.jpg,http://macro-oss.oss-cn-shenzhen.aliyuncs.com/mall/images/20180607/5ac1bf5fN2522b9dc.jpg",
+    "detailTitle": "",
+    "promotionStartTime": null,
+    "promotionEndTime": null,
+    "promotionPerLimit": 0,
+    "promotionType": 1,
+    "brandName": "华为",
+    "productCategoryName": "手机通讯",
+    "description": "",
+    "detailDesc": "",
+    "detailHtml": "<p><img class=\"wscnph\" src=\"http://macro-oss.oss-cn-shenzhen.aliyuncs.com/mall/images/20180607/5ad44f1cNf51f3bb0.jpg\" /><img class=\"wscnph\" src=\"http://macro-oss.oss-cn-shenzhen.aliyuncs.com/mall/images/20180607/5ad44fa8Nfcf71c10.jpg\" /><img class=\"wscnph\" src=\"http://macro-oss.oss-cn-shenzhen.aliyuncs.com/mall/images/20180607/5ad44fa9N40e78ee0.jpg\" /><img class=\"wscnph\" src=\"http://macro-oss.oss-cn-shenzhen.aliyuncs.com/mall/images/20180607/5ad457f4N1c94bdda.jpg\" /><img class=\"wscnph\" src=\"http://macro-oss.oss-cn-shenzhen.aliyuncs.com/mall/images/20180607/5ad457f5Nd30de41d.jpg\" /><img class=\"wscnph\" src=\"http://macro-oss.oss-cn-shenzhen.aliyuncs.com/mall/images/20180607/5b10fb0eN0eb053fb.jpg\" /></p>",
+    "detailMobileHtml": "",
+    "cateParentId": 2
+}
+* */
+@TableName("pms_product")
 @Data
 public class Product {
 
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     private Long brandId;
