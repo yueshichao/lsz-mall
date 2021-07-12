@@ -11,6 +11,6 @@ public interface HomeBrandService {
     int create(List<HomeBrand> homeBrandList);
 
 
-    CommonPage<HomeBrand> list(String brandName, Integer recommendStatus, Integer pageSize, Integer pageNum);
+    CommonPage<HomeBrand> getPage(String brandName, Integer recommendStatus, Integer pageSize, Integer pageNum);
 
 }

@@ -36,7 +36,7 @@ public class HomeBrandServiceImpl implements HomeBrandService {
     }
 
     @Override
-    public CommonPage<HomeBrand> list(String brandName, Integer recommendStatus, Integer pageSize, Integer pageNum) {
+    public CommonPage<HomeBrand> getPage(String brandName, Integer recommendStatus, Integer pageSize, Integer pageNum) {
         QueryWrapper<HomeBrand> queryWrapper = new QueryWrapper<>();
         queryWrapper.lambda().eq(recommendStatus != null, HomeBrand::getRecommendStatus, recommendStatus)
                 .like(StrUtil.isNotBlank(brandName), HomeBrand::getBrandName, brandName);

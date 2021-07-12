@@ -40,7 +40,7 @@ public class HomeBrandController {
             @RequestParam(value = "pageSize", defaultValue = "5") Integer pageSize,
             @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum
     ) {
-        CommonPage<HomeBrand> homeBrandList = homeBrandService.list(brandName, recommendStatus, pageSize, pageNum);
+        CommonPage<HomeBrand> homeBrandList = homeBrandService.getPage(brandName, recommendStatus, pageSize, pageNum);
         return ResponseMessage.ok(homeBrandList);
     }
 

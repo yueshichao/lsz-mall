@@ -12,8 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @Slf4j
 @Api(description = "商品管理")
 @RestController
@@ -42,7 +40,7 @@ public class ProductController {
     public ResponseMessage<CommonPage<Product>> getList(ProductQueryParam productQueryParam,
                                                         @RequestParam(value = "pageSize", defaultValue = "5") Integer pageSize,
                                                         @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum) {
-        CommonPage<Product> productList = productService.list(productQueryParam, pageSize, pageNum);
+        CommonPage<Product> productList = productService.getPage(productQueryParam, pageSize, pageNum);
         return ResponseMessage.ok(productList);
     }
 

@@ -8,11 +8,13 @@ import com.lsz.mall.base.entity.Product;
 import com.lsz.mall.base.entity.ProductParam;
 import com.lsz.mall.base.entity.ProductQueryParam;
 import com.lsz.mall.base.vo.CommonPage;
-import com.lsz.mall.manage.dao.ProductDao;
+import com.lsz.mall.manage.dao.*;
 import com.lsz.mall.manage.service.ProductService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -20,18 +22,76 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     ProductDao productDao;
 
+    @Autowired
+    MemberPriceDao memberPriceDao;
+
+    @Autowired
+    ProductLadderDao productLadderDao;
+
+    @Autowired
+    ProductFullReductionDao productFullReductionDao;
+
+    @Autowired
+    ProductAttrValueDao productAttrValueDao;
+
+    @Autowired
+    SkuStockDao skuStockDao;
+
+    @Autowired
+    SubjectProductRelationDao subjectProductRelationDao;
+
     @Override
     public int create(ProductParam productParam) {
         Product product = new Product();
         BeanUtils.copyProperties(productParam, product);
+
+        // 保存商品信息
         product.setId(null);
         int count = productDao.insert(product);
+
+        // 保存商品的关联信息
+        // 1. 会员价格
+        Optional.ofNullable(productParam.getMemberPriceList())
+                .ifPresent(list -> {
+                    list.forEach(e -> memberPriceDao.insert(e));
+                });
+
+        // 2. 阶梯价格
+        Optional.ofNullable(productParam.getProductLadderList())
+                .ifPresent(list -> {
+                    list.forEach(e -> productLadderDao.insert(e));
+                });
+
+        // 3. 满减价格
+        Optional.ofNullable(productParam.getProductFullReductionList())
+                .ifPresent(list -> {
+                    list.forEach(e -> productFullReductionDao.insert(e));
+                });
+
+        // 4. 库存信息
+        Optional.ofNullable(productParam.getSkuStockList())
+                .ifPresent(list -> {
+                    list.forEach(e -> skuStockDao.insert(e));
+                });
+
+        // 5. 商品规格
+        Optional.ofNullable(productParam.getProductAttributeValueList())
+                .ifPresent(list -> {
+                    list.forEach(e -> productAttrValueDao.insert(e));
+                });
+
+        // 6. 专题
+        Optional.ofNullable(productParam.getSubjectProductRelationList())
+                .ifPresent(list -> {
+                    list.forEach(e -> subjectProductRelationDao.insert(e));
+                });
+
 
         return count;
     }
 
     @Override
-    public CommonPage<Product> list(ProductQueryParam productQueryParam, Integer pageSize, Integer pageNum) {
+    public CommonPage<Product> getPage(ProductQueryParam productQueryParam, Integer pageSize, Integer pageNum) {
 
         QueryWrapper<Product> queryWrapper = new QueryWrapper<>();
         queryWrapper.lambda()
