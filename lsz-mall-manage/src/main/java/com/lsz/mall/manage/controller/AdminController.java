@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @RestController
 @Api(description = "后台用户管理")
 @RequestMapping("/admin")
-public class UmsAdminController {
+public class AdminController {
 
     @Value("${jwt.tokenHeader}")
     private String tokenHeader;
@@ -139,17 +139,7 @@ public class UmsAdminController {
     @ResponseBody
     public ResponseMessage updatePassword(@Validated @RequestBody UpdateAdminPasswordParam updatePasswordParam) {
         int status = adminService.updatePassword(updatePasswordParam);
-        if (status > 0) {
-            return ResponseMessage.ok(status);
-        } else if (status == -1) {
-            return ResponseMessage.error("提交参数不合法");
-        } else if (status == -2) {
-            return ResponseMessage.error("找不到该用户");
-        } else if (status == -3) {
-            return ResponseMessage.error("旧密码错误");
-        } else {
-            return ResponseMessage.error();
-        }
+        return ResponseMessage.ok(status);
     }
 
     @ApiOperation("删除指定用户信息")

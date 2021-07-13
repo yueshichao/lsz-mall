@@ -25,8 +25,12 @@ public class ResponseMessage<T> {
         return error(500, "-1", null);
     }
 
-    public static <T> ResponseMessage<T> error(String message, Object... args) {
-        return error(500, "-1", message);
+    public static <T> ResponseMessage<T> error(String message, String code) {
+        return error(500, StrUtil.isNotBlank(code) ? code : "-1", message);
+    }
+
+    public static <T> ResponseMessage<T> error(String message) {
+        return error(message, null);
     }
 
     public static <T> ResponseMessage<T> error(int status, String code, String message, Object... args) {

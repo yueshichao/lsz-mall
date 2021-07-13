@@ -1,6 +1,9 @@
 package com.lsz.mall.manage.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lsz.mall.base.entity.*;
 import com.lsz.mall.base.vo.CommonPage;
 import com.lsz.mall.manage.dao.AdminDao;
@@ -116,22 +119,45 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public CommonPage<Admin> getPage(String keyword, Integer pageSize, Integer pageNum) {
-        return null;
+
+        QueryWrapper<Admin> queryWrapper = new QueryWrapper<>();
+        queryWrapper.lambda()
+                .like(StrUtil.isNotBlank(keyword), AdminParam::getNickName, keyword)
+                .like(StrUtil.isNotBlank(keyword), AdminParam::getUsername, keyword);
+        IPage<Admin> page = adminDao.selectPage(new Page<>(pageNum, pageSize), queryWrapper);
+        return CommonPage.restPage(page);
     }
 
     @Override
     public Admin getItem(Long id) {
-        return null;
+        return adminDao.selectById(id);
     }
 
     @Override
     public int update(Long id, Admin admin) {
-        return 0;
+        admin.setId(id);
+        // 加盐保存密码
+        admin.setPassword(passwordEncoder.encode(admin.getPassword()));
+        return adminDao.updateById(admin);
     }
 
     @Override
     public int updatePassword(UpdateAdminPasswordParam updatePasswordParam) {
-        return 0;
+        QueryWrapper<Admin> queryWrapper = new QueryWrapper<>();
+        queryWrapper.lambda().eq(AdminParam::getUsername, updatePasswordParam.getUsername());
+        Admin admin = adminDao.selectOne(queryWrapper);
+
+        if (admin == null) {
+            throw new ServiceException("查无此人！");
+        }
+
+        if(!passwordEncoder.matches(updatePasswordParam.getOldPassword(), admin.getPassword())) {
+            throw new ServiceException("原密码错误！");
+        }
+
+        admin.setPassword(passwordEncoder.encode(admin.getPassword()));
+
+        return adminDao.updateById(admin);
     }
 
     @Override
