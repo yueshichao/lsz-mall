@@ -1,4 +1,7 @@
 
+-- 权限控制参考RBAC：https://blog.csdn.net/weixin_41174072/article/details/83387223
+-- admin表，role表，admin和role关联，role和权限（resource、menu）关联
+
 
 CREATE TABLE `ums_admin` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
