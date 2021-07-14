@@ -8,8 +8,8 @@ import lombok.Data;
 
 import java.util.Date;
 
-@Data
 @TableName("ums_role")
+@Data
 public class AdminRole {
 
     @TableId(type = IdType.AUTO)

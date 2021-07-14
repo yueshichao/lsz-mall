@@ -1,12 +1,15 @@
 package com.lsz.mall.manage.service.impl;
 
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lsz.mall.base.entity.*;
 import com.lsz.mall.base.vo.CommonPage;
 import com.lsz.mall.manage.dao.AdminDao;
+import com.lsz.mall.manage.dao.AdminRoleRelationDao;
 import com.lsz.mall.manage.dao.AuthDao;
 import com.lsz.mall.manage.entity.AdminUserDetails;
 import com.lsz.mall.manage.service.AdminService;
@@ -40,6 +43,9 @@ public class AdminServiceImpl implements AdminService {
 
     @Autowired
     JwtTokenUtil jwtTokenUtil;
+
+    @Autowired
+    AdminRoleRelationDao adminRoleRelationDao;
 
     @Override
     public Admin register(AdminParam adminParam) {
@@ -109,12 +115,22 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public Admin getAdminByUsername(String username) {
-        return null;
+        QueryWrapper<Admin> queryWrapper = new QueryWrapper<>();
+        queryWrapper.lambda().eq(AdminParam::getUsername, username);
+        Admin admin = adminDao.selectOne(queryWrapper);
+        return admin;
     }
 
     @Override
-    public List<UmsRole> getRoleList(Long id) {
-        return null;
+    public Admin getAdminByToken(String token) {
+        String username = jwtTokenUtil.getUserNameFromToken(token);
+        return getAdminByUsername(username);
+    }
+
+    @Override
+    public List<AdminRole> getRoleList(Long adminId) {
+        List<AdminRole> roleList = authDao.getRoleList(adminId);
+        return roleList;
     }
 
     @Override
@@ -151,7 +167,7 @@ public class AdminServiceImpl implements AdminService {
             throw new ServiceException("查无此人！");
         }
 
-        if(!passwordEncoder.matches(updatePasswordParam.getOldPassword(), admin.getPassword())) {
+        if (!passwordEncoder.matches(updatePasswordParam.getOldPassword(), admin.getPassword())) {
             throw new ServiceException("原密码错误！");
         }
 
@@ -162,11 +178,28 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public int delete(Long id) {
-        return 0;
+        int count = adminDao.deleteById(id);
+        return count;
     }
 
     @Override
     public int updateRole(Long adminId, List<Long> roleIds) {
-        return 0;
+
+        // 先删除原来的
+//        LambdaQueryWrapper<AdminRoleRelation> wrapper = new LambdaQueryWrapper<>();
+//        wrapper.eq(AdminRoleRelation::getAdminId, adminId);
+        LambdaQueryWrapper<AdminRoleRelation> wrapper = new LambdaQueryWrapper<AdminRoleRelation>()
+                .eq(AdminRoleRelation::getAdminId, adminId);
+
+        int deletedCount = adminRoleRelationDao.delete(wrapper);
+        log.info("deletedCount = {}", deletedCount);
+
+        // 再插入新的
+        long count = roleIds.stream()
+                .map(roleId -> adminRoleRelationDao.insert(new AdminRoleRelation(adminId, roleId)))
+                .mapToInt(i -> i)
+                .count();
+
+        return (int) count;
     }
 }

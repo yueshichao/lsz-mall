@@ -13,7 +13,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -80,19 +79,17 @@ public class AdminController {
     @ApiOperation(value = "获取当前登录用户信息")
     @RequestMapping(value = "/info", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseMessage getAdminInfo(Principal principal) {
-        if (principal == null) {
-            return ResponseMessage.error(null);
-        }
-        String username = principal.getName();
-        Admin umsAdmin = adminService.getAdminByUsername(username);
+    public ResponseMessage getAdminInfo(HttpServletRequest request) {
+        // TODO Principal实现？
+        String token = request.getHeader(tokenHeader);
+        Admin umsAdmin = adminService.getAdminByToken(token);
         Map<String, Object> data = new HashMap<>();
         data.put("username", umsAdmin.getUsername());
         data.put("menus", roleService.getMenuList(umsAdmin.getId()));
         data.put("icon", umsAdmin.getIcon());
-        List<UmsRole> roleList = adminService.getRoleList(umsAdmin.getId());
+        List<AdminRole> roleList = adminService.getRoleList(umsAdmin.getId());
         if (CollUtil.isNotEmpty(roleList)) {
-            List<String> roles = roleList.stream().map(UmsRole::getName).collect(Collectors.toList());
+            List<String> roles = roleList.stream().map(AdminRole::getName).collect(Collectors.toList());
             data.put("roles", roles);
         }
         return ResponseMessage.ok(data);
@@ -172,17 +169,14 @@ public class AdminController {
     public ResponseMessage updateRole(@RequestParam("adminId") Long adminId,
                                       @RequestParam("roleIds") List<Long> roleIds) {
         int count = adminService.updateRole(adminId, roleIds);
-        if (count >= 0) {
-            return ResponseMessage.ok(count);
-        }
-        return ResponseMessage.error();
+        return ResponseMessage.ok(count);
     }
 
     @ApiOperation("获取指定用户的角色")
     @RequestMapping(value = "/role/{adminId}", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseMessage<List<UmsRole>> getRoleList(@PathVariable Long adminId) {
-        List<UmsRole> roleList = adminService.getRoleList(adminId);
+    public ResponseMessage<List<AdminRole>> getRoleList(@PathVariable Long adminId) {
+        List<AdminRole> roleList = adminService.getRoleList(adminId);
         return ResponseMessage.ok(roleList);
     }
 

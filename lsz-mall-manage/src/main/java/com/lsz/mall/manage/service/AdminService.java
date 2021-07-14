@@ -2,9 +2,10 @@ package com.lsz.mall.manage.service;
 
 import com.lsz.mall.base.entity.Admin;
 import com.lsz.mall.base.entity.AdminParam;
-import com.lsz.mall.base.entity.UmsRole;
+import com.lsz.mall.base.entity.AdminRole;
 import com.lsz.mall.base.entity.UpdateAdminPasswordParam;
 import com.lsz.mall.base.vo.CommonPage;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -19,7 +20,9 @@ public interface AdminService {
 
     Admin getAdminByUsername(String username);
 
-    List<UmsRole> getRoleList(Long id);
+    Admin getAdminByToken(String token);
+
+    List<AdminRole> getRoleList(Long adminId);
 
     CommonPage<Admin> getPage(String keyword, Integer pageSize, Integer pageNum);
 
@@ -31,5 +34,7 @@ public interface AdminService {
 
     int delete(Long id);
 
+    @Transactional
     int updateRole(Long adminId, List<Long> roleIds);
+
 }
