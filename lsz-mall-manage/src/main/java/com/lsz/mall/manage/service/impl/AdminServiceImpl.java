@@ -192,7 +192,7 @@ public class AdminServiceImpl implements AdminService {
                 .eq(AdminRoleRelation::getAdminId, adminId);
 
         int deletedCount = adminRoleRelationDao.delete(wrapper);
-        log.info("deletedCount = {}", deletedCount);
+        log.debug("deletedCount = {}", deletedCount);
 
         // 再插入新的
         long count = roleIds.stream()

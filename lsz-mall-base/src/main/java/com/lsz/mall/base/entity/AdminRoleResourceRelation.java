@@ -5,12 +5,10 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
-@TableName("ums_role_menu_relation")
-public class AdminRoleMenuRelation {
+@TableName("ums_role_resource_relation")
+public class AdminRoleResourceRelation {
 
     @TableId(type = IdType.AUTO)
     private Long id;
@@ -18,11 +16,11 @@ public class AdminRoleMenuRelation {
     @ApiModelProperty(value = "角色ID")
     private Long roleId;
 
-    @ApiModelProperty(value = "菜单ID")
-    private Long menuId;
+    @ApiModelProperty(value = "资源ID")
+    private Long resourceId;
 
-    public AdminRoleMenuRelation(Long roleId, Long menuId) {
+    public AdminRoleResourceRelation(Long roleId, Long resourceId) {
         this.roleId = roleId;
-        this.menuId = menuId;
+        this.resourceId = resourceId;
     }
 }

@@ -14,12 +14,8 @@ CREATE TABLE `ums_admin` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COMMENT='后台用户表';
 
+INSERT INTO `ums_admin`(`id`, `username`, `password`, `icon`, `email`, `nick_name`, `note`, `create_time`, `login_time`, `status`) VALUES (1, 'admin', '$2a$10$AbgWMFNnSZ49waTV8CrpX.CauKeVcuL.IywgzU7biwjpLPvpnvHJW', 'http://macro-oss.oss-cn-shenzhen.aliyuncs.com/mall/images/20180607/timg.jpg', 'admin@163.com', '系统管理员', '系统管理员', '2018-10-08 13:32:47', '2019-04-20 12:45:16', 1);
 
-INSERT INTO `ums_admin` VALUES ('1', 'test', '$2a$10$NZ5o7r2E.ayT2ZoxgjlI.eJ6OEYqjH7INR/F.mXDbjZJi9HF0YCVG', 'http://macro-oss.oss-cn-shenzhen.aliyuncs.com/mall/images/20180607/timg.jpg', 'test@qq.com', '测试账号', null, '2018-09-29 13:55:30', '2018-09-29 13:55:39', '1');
-INSERT INTO `ums_admin` VALUES ('3', 'admin', '$2a$10$.E1FokumK5GIXWgKlg.Hc.i/0/2.qdAwYFL1zc5QHdyzpXOr38RZO', 'http://macro-oss.oss-cn-shenzhen.aliyuncs.com/mall/images/20180607/timg.jpg', 'admin@163.com', '系统管理员', '系统管理员', '2018-10-08 13:32:47', '2019-04-20 12:45:16', '1');
-INSERT INTO `ums_admin` VALUES ('4', 'macro', '$2a$10$Bx4jZPR7GhEpIQfefDQtVeS58GfT5n6mxs/b4nLLK65eMFa16topa', 'string', 'macro@qq.com', 'macro', 'macro专用', '2019-10-06 15:53:51', '2020-02-03 14:55:55', '1');
-INSERT INTO `ums_admin` VALUES ('6', 'productAdmin', '$2a$10$6/.J.p.6Bhn7ic4GfoB5D.pGd7xSiD1a9M6ht6yO0fxzlKJPjRAGm', null, 'product@qq.com', '商品管理员', '只有商品权限', '2020-02-07 16:15:08', null, '1');
-INSERT INTO `ums_admin` VALUES ('7', 'orderAdmin', '$2a$10$UqEhA9UZXjHHA3B.L9wNG.6aerrBjC6WHTtbv1FdvYPUI.7lkL6E.', null, 'order@qq.com', '订单管理员', '只有订单管理权限', '2020-02-07 16:15:50', null, '1');
 
 CREATE TABLE `ums_role` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
@@ -37,7 +33,6 @@ INSERT INTO `ums_role` VALUES ('2', '订单管理员', '只能查看及操作订
 INSERT INTO `ums_role` VALUES ('5', '超级管理员', '拥有所有查看和操作功能', '0', '2020-02-02 15:11:05', '1', '0');
 
 
-
 CREATE TABLE `ums_admin_role_relation` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `admin_id` bigint(20) DEFAULT NULL,
@@ -45,11 +40,8 @@ CREATE TABLE `ums_admin_role_relation` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COMMENT='后台用户和角色关系表';
 
-INSERT INTO `ums_admin_role_relation` VALUES ('26', '3', '5');
-INSERT INTO `ums_admin_role_relation` VALUES ('27', '6', '1');
-INSERT INTO `ums_admin_role_relation` VALUES ('28', '7', '2');
-INSERT INTO `ums_admin_role_relation` VALUES ('29', '1', '5');
-INSERT INTO `ums_admin_role_relation` VALUES ('30', '4', '5');
+INSERT INTO `ums_admin_role_relation` VALUES ('1', '1', '5');
+
 
 CREATE TABLE `ums_resource` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
@@ -68,7 +60,7 @@ INSERT INTO `ums_resource` VALUES ('4', '2020-02-04 17:07:15', '商品分类管�
 INSERT INTO `ums_resource` VALUES ('5', '2020-02-04 17:09:16', '商品管理', '/product/**', null, '1');
 INSERT INTO `ums_resource` VALUES ('6', '2020-02-04 17:09:53', '商品库存管理', '/sku/**', null, '1');
 INSERT INTO `ums_resource` VALUES ('8', '2020-02-05 14:43:37', '订单管理', '/order/**', '', '2');
-INSERT INTO `ums_resource` VALUES ('9', '2020-02-05 14:44:22', ' 订单退货申请管理', '/returnApply/**', '', '2');
+INSERT INTO `ums_resource` VALUES ('9', '2020-02-05 14:44:22', '订单退货申请管理', '/returnApply/**', '', '2');
 INSERT INTO `ums_resource` VALUES ('10', '2020-02-05 14:45:08', '退货原因管理', '/returnReason/**', '', '2');
 INSERT INTO `ums_resource` VALUES ('11', '2020-02-05 14:45:43', '订单设置管理', '/orderSetting/**', '', '2');
 INSERT INTO `ums_resource` VALUES ('12', '2020-02-05 14:46:23', '收货地址管理', '/companyAddress/**', '', '2');
@@ -82,7 +74,7 @@ INSERT INTO `ums_resource` VALUES ('19', '2020-02-07 16:40:34', '首页品牌管
 INSERT INTO `ums_resource` VALUES ('20', '2020-02-07 16:41:06', '首页新品管理', '/home/newProduct/**', '', '3');
 INSERT INTO `ums_resource` VALUES ('21', '2020-02-07 16:42:16', '首页人气推荐管理', '/home/recommendProduct/**', '', '3');
 INSERT INTO `ums_resource` VALUES ('22', '2020-02-07 16:42:48', '首页专题推荐管理', '/home/recommendSubject/**', '', '3');
-INSERT INTO `ums_resource` VALUES ('23', '2020-02-07 16:44:56', ' 商品优选管理', '/prefrenceArea/**', '', '5');
+INSERT INTO `ums_resource` VALUES ('23', '2020-02-07 16:44:56', '商品优选管理', '/prefrenceArea/**', '', '5');
 INSERT INTO `ums_resource` VALUES ('24', '2020-02-07 16:45:39', '商品专题管理', '/subject/**', '', '5');
 INSERT INTO `ums_resource` VALUES ('25', '2020-02-07 16:47:34', '后台用户管理', '/admin/**', '', '4');
 INSERT INTO `ums_resource` VALUES ('26', '2020-02-07 16:48:24', '后台用户角色管理', '/role/**', '', '4');
@@ -139,3 +131,87 @@ INSERT INTO `ums_role_resource_relation` VALUES ('174', '1', '5');
 INSERT INTO `ums_role_resource_relation` VALUES ('175', '1', '6');
 INSERT INTO `ums_role_resource_relation` VALUES ('176', '1', '23');
 INSERT INTO `ums_role_resource_relation` VALUES ('177', '1', '24');
+
+
+CREATE TABLE `ums_menu` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `parent_id` bigint(20) DEFAULT NULL COMMENT '父级ID',
+  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+  `title` varchar(100) DEFAULT NULL COMMENT '菜单名称',
+  `level` int(4) DEFAULT NULL COMMENT '菜单级数',
+  `sort` int(4) DEFAULT NULL COMMENT '菜单排序',
+  `name` varchar(100) DEFAULT NULL COMMENT '前端名称',
+  `icon` varchar(200) DEFAULT NULL COMMENT '前端图标',
+  `hidden` int(1) DEFAULT NULL COMMENT '前端隐藏',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COMMENT='后台菜单表';
+
+INSERT INTO `ums_menu` VALUES ('1', '0', '2020-02-02 14:50:36', '商品', '0', '0', 'pms', 'product', '0');
+INSERT INTO `ums_menu` VALUES ('2', '1', '2020-02-02 14:51:50', '商品列表', '1', '0', 'product', 'product-list', '0');
+INSERT INTO `ums_menu` VALUES ('3', '1', '2020-02-02 14:52:44', '添加商品', '1', '0', 'addProduct', 'product-add', '0');
+INSERT INTO `ums_menu` VALUES ('4', '1', '2020-02-02 14:53:51', '商品分类', '1', '0', 'productCate', 'product-cate', '0');
+INSERT INTO `ums_menu` VALUES ('5', '1', '2020-02-02 14:54:51', '商品类型', '1', '0', 'productAttr', 'product-attr', '0');
+INSERT INTO `ums_menu` VALUES ('6', '1', '2020-02-02 14:56:29', '品牌管理', '1', '0', 'brand', 'product-brand', '0');
+INSERT INTO `ums_menu` VALUES ('7', '0', '2020-02-02 16:54:07', '订单', '0', '0', 'oms', 'order', '0');
+INSERT INTO `ums_menu` VALUES ('8', '7', '2020-02-02 16:55:18', '订单列表', '1', '0', 'order', 'product-list', '0');
+INSERT INTO `ums_menu` VALUES ('9', '7', '2020-02-02 16:56:46', '订单设置', '1', '0', 'orderSetting', 'order-setting', '0');
+INSERT INTO `ums_menu` VALUES ('10', '7', '2020-02-02 16:57:39', '退货申请处理', '1', '0', 'returnApply', 'order-return', '0');
+INSERT INTO `ums_menu` VALUES ('11', '7', '2020-02-02 16:59:40', '退货原因设置', '1', '0', 'returnReason', 'order-return-reason', '0');
+INSERT INTO `ums_menu` VALUES ('12', '0', '2020-02-04 16:18:00', '营销', '0', '0', 'sms', 'sms', '0');
+INSERT INTO `ums_menu` VALUES ('13', '12', '2020-02-04 16:19:22', '秒杀活动列表', '1', '0', 'flash', 'sms-flash', '0');
+INSERT INTO `ums_menu` VALUES ('14', '12', '2020-02-04 16:20:16', '优惠券列表', '1', '0', 'coupon', 'sms-coupon', '0');
+INSERT INTO `ums_menu` VALUES ('16', '12', '2020-02-07 16:22:38', '品牌推荐', '1', '0', 'homeBrand', 'product-brand', '0');
+INSERT INTO `ums_menu` VALUES ('17', '12', '2020-02-07 16:23:14', '新品推荐', '1', '0', 'homeNew', 'sms-new', '0');
+INSERT INTO `ums_menu` VALUES ('18', '12', '2020-02-07 16:26:38', '人气推荐', '1', '0', 'homeHot', 'sms-hot', '0');
+INSERT INTO `ums_menu` VALUES ('19', '12', '2020-02-07 16:28:16', '专题推荐', '1', '0', 'homeSubject', 'sms-subject', '0');
+INSERT INTO `ums_menu` VALUES ('20', '12', '2020-02-07 16:28:42', '广告列表', '1', '0', 'homeAdvertise', 'sms-ad', '0');
+INSERT INTO `ums_menu` VALUES ('21', '0', '2020-02-07 16:29:13', '权限', '0', '0', 'ums', 'ums', '0');
+INSERT INTO `ums_menu` VALUES ('22', '21', '2020-02-07 16:29:51', '用户列表', '1', '0', 'admin', 'ums-admin', '0');
+INSERT INTO `ums_menu` VALUES ('23', '21', '2020-02-07 16:30:13', '角色列表', '1', '0', 'role', 'ums-role', '0');
+INSERT INTO `ums_menu` VALUES ('24', '21', '2020-02-07 16:30:53', '菜单列表', '1', '0', 'menu', 'ums-menu', '0');
+INSERT INTO `ums_menu` VALUES ('25', '21', '2020-02-07 16:31:13', '资源列表', '1', '0', 'resource', 'ums-resource', '0');
+
+
+CREATE TABLE `ums_role_menu_relation` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `role_id` bigint(20) DEFAULT NULL COMMENT '角色ID',
+  `menu_id` bigint(20) DEFAULT NULL COMMENT '菜单ID',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=96 DEFAULT CHARSET=utf8mb4 COMMENT='后台角色菜单关系表';
+
+
+INSERT INTO `ums_role_menu_relation` VALUES ('33', '1', '1');
+INSERT INTO `ums_role_menu_relation` VALUES ('34', '1', '2');
+INSERT INTO `ums_role_menu_relation` VALUES ('35', '1', '3');
+INSERT INTO `ums_role_menu_relation` VALUES ('36', '1', '4');
+INSERT INTO `ums_role_menu_relation` VALUES ('37', '1', '5');
+INSERT INTO `ums_role_menu_relation` VALUES ('38', '1', '6');
+INSERT INTO `ums_role_menu_relation` VALUES ('53', '2', '7');
+INSERT INTO `ums_role_menu_relation` VALUES ('54', '2', '8');
+INSERT INTO `ums_role_menu_relation` VALUES ('55', '2', '9');
+INSERT INTO `ums_role_menu_relation` VALUES ('56', '2', '10');
+INSERT INTO `ums_role_menu_relation` VALUES ('57', '2', '11');
+INSERT INTO `ums_role_menu_relation` VALUES ('72', '5', '1');
+INSERT INTO `ums_role_menu_relation` VALUES ('73', '5', '2');
+INSERT INTO `ums_role_menu_relation` VALUES ('74', '5', '3');
+INSERT INTO `ums_role_menu_relation` VALUES ('75', '5', '4');
+INSERT INTO `ums_role_menu_relation` VALUES ('76', '5', '5');
+INSERT INTO `ums_role_menu_relation` VALUES ('77', '5', '6');
+INSERT INTO `ums_role_menu_relation` VALUES ('78', '5', '7');
+INSERT INTO `ums_role_menu_relation` VALUES ('79', '5', '8');
+INSERT INTO `ums_role_menu_relation` VALUES ('80', '5', '9');
+INSERT INTO `ums_role_menu_relation` VALUES ('81', '5', '10');
+INSERT INTO `ums_role_menu_relation` VALUES ('82', '5', '11');
+INSERT INTO `ums_role_menu_relation` VALUES ('83', '5', '12');
+INSERT INTO `ums_role_menu_relation` VALUES ('84', '5', '13');
+INSERT INTO `ums_role_menu_relation` VALUES ('85', '5', '14');
+INSERT INTO `ums_role_menu_relation` VALUES ('86', '5', '16');
+INSERT INTO `ums_role_menu_relation` VALUES ('87', '5', '17');
+INSERT INTO `ums_role_menu_relation` VALUES ('88', '5', '18');
+INSERT INTO `ums_role_menu_relation` VALUES ('89', '5', '19');
+INSERT INTO `ums_role_menu_relation` VALUES ('90', '5', '20');
+INSERT INTO `ums_role_menu_relation` VALUES ('91', '5', '21');
+INSERT INTO `ums_role_menu_relation` VALUES ('92', '5', '22');
+INSERT INTO `ums_role_menu_relation` VALUES ('93', '5', '23');
+INSERT INTO `ums_role_menu_relation` VALUES ('94', '5', '24');
+INSERT INTO `ums_role_menu_relation` VALUES ('95', '5', '25');

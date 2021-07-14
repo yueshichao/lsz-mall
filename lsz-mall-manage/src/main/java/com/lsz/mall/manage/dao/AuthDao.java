@@ -1,5 +1,6 @@
 package com.lsz.mall.manage.dao;
 
+import com.lsz.mall.base.entity.AdminMenu;
 import com.lsz.mall.base.entity.AdminResource;
 import com.lsz.mall.base.entity.AdminRole;
 import org.apache.ibatis.annotations.Mapper;
@@ -23,5 +24,19 @@ public interface AuthDao {
      */
     List<AdminRole> getRoleList(@Param("adminId") Long adminId);
 
+    /**
+     * 根据后台用户ID获取菜单
+     */
+    List<AdminMenu> getMenuList(@Param("adminId") Long adminId);
+
+    /**
+     * 根据角色ID获取菜单
+     */
+    List<AdminMenu> getMenuListByRoleId(@Param("roleId") Long roleId);
+
+    /**
+     * 根据角色ID获取资源
+     */
+    List<AdminResource> getResourceListByRoleId(@Param("roleId") Long roleId);
 
 }
