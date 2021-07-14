@@ -83,7 +83,7 @@ public class AdminServiceImpl implements AdminService {
             SecurityContextHolder.getContext().setAuthentication(authentication);
             token = jwtTokenUtil.generateToken(userDetails);
             if (!passwordEncoder.matches(password, userDetails.getPassword())) {
-                throw new RuntimeException("登录密码错误！");
+                throw new ServiceException("登录密码错误！");
             }
         } catch (AuthenticationException e) {
             log.warn("登录异常:{}", e.getMessage());
@@ -91,7 +91,8 @@ public class AdminServiceImpl implements AdminService {
         return token;
     }
 
-    private UserDetails loadUserByUsername(String username) {
+    @Override
+    public UserDetails loadUserByUsername(String username) {
         QueryWrapper<Admin> queryWrapper = new QueryWrapper<>();
         queryWrapper.lambda().eq(AdminParam::getUsername, username);
         Admin admin = adminDao.selectOne(queryWrapper);
@@ -123,7 +124,8 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public Admin getAdminByToken(String token) {
-        String username = jwtTokenUtil.getUserNameFromToken(token);
+        String validToken = jwtTokenUtil.validToken(token);
+        String username = jwtTokenUtil.getUserNameFromToken(validToken);
         return getAdminByUsername(username);
     }
 

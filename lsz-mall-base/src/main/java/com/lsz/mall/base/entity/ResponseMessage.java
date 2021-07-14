@@ -10,11 +10,12 @@ public class ResponseMessage<T> {
 
     protected String message;
 
-    protected T result;
+    protected T data;
 
     protected int status;
 
-    protected String code;
+    // 状态码
+    protected int code;
 
     protected Long timestamp;
 
@@ -22,18 +23,23 @@ public class ResponseMessage<T> {
     }
 
     public static <T> ResponseMessage<T> error() {
-        return error(500, "-1", null);
+        return error(500, -1, null);
     }
 
     public static <T> ResponseMessage<T> error(String message, String code) {
-        return error(500, StrUtil.isNotBlank(code) ? code : "-1", message);
+        int newCode = StrUtil.isNotBlank(code) ? Integer.parseInt(code) : -1;
+        return error(500, newCode, message);
+    }
+
+    public static <T> ResponseMessage<T> error(String message, int code) {
+        return error(500, code, message);
     }
 
     public static <T> ResponseMessage<T> error(String message) {
         return error(message, null);
     }
 
-    public static <T> ResponseMessage<T> error(int status, String code, String message, Object... args) {
+    public static <T> ResponseMessage<T> error(int status, int code, String message, Object... args) {
         ResponseMessage<T> msg = new ResponseMessage<>();
         msg.message = StrUtil.format(message, args);
         msg.status(status);
@@ -46,7 +52,7 @@ public class ResponseMessage<T> {
     }
 
     public static <T> ResponseMessage<T> ok(T result) {
-        return (new ResponseMessage<T>()).result(result).putTimeStamp().code("0").status(200);
+        return (new ResponseMessage<T>()).result(result).putTimeStamp().code(200).status(200);
     }
 
     private ResponseMessage<T> putTimeStamp() {
@@ -55,7 +61,7 @@ public class ResponseMessage<T> {
     }
 
     public ResponseMessage<T> result(T result) {
-        this.result = result;
+        this.data = result;
         return this;
     }
 
@@ -70,7 +76,7 @@ public class ResponseMessage<T> {
         return this;
     }
 
-    public ResponseMessage<T> code(String code) {
+    public ResponseMessage<T> code(int code) {
         this.code = code;
         return this;
     }
