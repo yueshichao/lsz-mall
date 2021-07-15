@@ -1,10 +1,7 @@
 package com.lsz.mall.manage.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.lsz.mall.base.entity.ProductAttribute;
-import com.lsz.mall.base.entity.ProductAttributeParam;
-import com.lsz.mall.base.entity.ProductCategory;
-import com.lsz.mall.base.entity.ProductCategoryParam;
+import com.lsz.mall.base.entity.*;
 import com.lsz.mall.base.vo.CommonPage;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,5 +44,10 @@ public interface ProductCategoryService {
      * 批量修改显示状态
      */
     int updateShowStatus(List<Long> ids, Integer showStatus);
+
+    /**
+     * 以层级形式获取商品分类
+     */
+    List<ProductCategoryWithChildrenItem> listWithChildren();
 
 }

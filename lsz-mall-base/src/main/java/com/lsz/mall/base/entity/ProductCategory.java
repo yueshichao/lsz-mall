@@ -15,11 +15,11 @@ import java.io.Serializable;
 public class ProductCategory extends ProductCategoryBase {
 
     @TableId(type = IdType.AUTO)
-    private Long id;
+    protected Long id;
 
     @ApiModelProperty(value = "分类级别：0->1级；1->2级")
-    private Integer level;
+    protected Integer level;
 
-    private Integer productCount;
+    protected Integer productCount;
 
 }

@@ -2,6 +2,7 @@ package com.lsz.mall.manage.controller;
 
 import com.lsz.mall.base.entity.ProductCategory;
 import com.lsz.mall.base.entity.ProductCategoryParam;
+import com.lsz.mall.base.entity.ProductCategoryWithChildrenItem;
 import com.lsz.mall.base.entity.ResponseMessage;
 import com.lsz.mall.base.vo.CommonPage;
 import com.lsz.mall.manage.service.ProductCategoryService;
@@ -11,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @RestController
@@ -41,6 +44,15 @@ public class ProductCategoryController {
                                                              @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum) {
         CommonPage<ProductCategory> page = productCategoryService.getPage(parentId, pageSize, pageNum);
         return ResponseMessage.ok(page);
+    }
+
+
+    @ApiOperation("查询所有一级分类及子分类")
+    @RequestMapping(value = "/list/withChildren", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseMessage<List<ProductCategoryWithChildrenItem>> listWithChildren() {
+        List<ProductCategoryWithChildrenItem> list = productCategoryService.listWithChildren();
+        return ResponseMessage.ok(list);
     }
 
 }

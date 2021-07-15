@@ -55,6 +55,39 @@
       attribute_count = #{attributeCount,jdbcType=INTEGER},
       param_count = #{paramCount,jdbcType=INTEGER}
     where id = #{id,jdbcType=BIGINT}
-  </update>
+    </update>
+
+    <!--
+    1. mybatis集合映射参考：http://www.mybatis.cn/archives/828.html
+
+    2. ofType和javaType的区别：https://blog.csdn.net/u013216156/article/details/78642920
+    前者是集合内元素的类型（POJO），后者是集合的类型（ArrayList,HashSet）
+
+    -->
+
+    <resultMap id="baseAttrMap" type="com.lsz.mall.base.entity.ProductAttribute">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+    </resultMap>
+
+    <resultMap id="getListWithAttrMap" type="com.lsz.mall.base.entity.ProductAttributeCategoryItem">
+        <id property="id" column="id"/>
+        <id property="name" column="name"/>
+        <collection property="productAttributeList" columnPrefix="attr_"
+                    ofType="com.lsz.mall.base.entity.ProductAttribute" resultMap="baseAttrMap">
+        </collection>
+    </resultMap>
+
+    <select id="getListWithAttr" resultMap="getListWithAttrMap">
+        SELECT
+            pac.id,
+            pac.name,
+            pa.id attr_id,
+            pa.name attr_name
+        FROM
+            pms_product_attribute_category pac
+            LEFT JOIN pms_product_attribute pa ON pac.id = pa.product_attribute_category_id
+        AND pa.type=1;
+    </select>
 
 </mapper>
