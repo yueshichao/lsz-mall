@@ -2,6 +2,7 @@ package com.lsz.mall.manage.util;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
+import com.lsz.mall.base.entity.ServiceException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -129,21 +130,19 @@ public class JwtTokenUtil {
      * @param oldToken 带tokenHead的token
      */
     public String refreshHeadToken(String oldToken) {
-        if (StrUtil.isEmpty(oldToken)) {
-            return null;
-        }
+        String token = validToken(oldToken);
         //token校验不通过
-        Claims claims = getClaimsFromToken(oldToken);
+        Claims claims = getClaimsFromToken(token);
         if (claims == null) {
             return null;
         }
         //如果token已经过期，不支持刷新
-        if (isTokenExpired(oldToken)) {
+        if (isTokenExpired(token)) {
             return null;
         }
         //如果token在30分钟之内刚刷新过，返回原token
-        if (tokenRefreshJustBefore(oldToken, 30 * 60)) {
-            return oldToken;
+        if (tokenRefreshJustBefore(token, 30 * 60)) {
+            return token;
         } else {
             claims.put(CLAIM_KEY_CREATED, new Date());
             return generateToken(claims);
@@ -165,5 +164,16 @@ public class JwtTokenUtil {
             return true;
         }
         return false;
+    }
+
+    public String validToken(String token) {
+        if (StrUtil.isBlank(token)) {
+            throw new ServiceException("token为空！");
+        }
+        if (!token.startsWith(tokenHead)) {
+            log.warn("token开头不是{}, token = {}", tokenHead, token);
+            return token;
+        }
+        return token.substring(tokenHead.length());
     }
 }

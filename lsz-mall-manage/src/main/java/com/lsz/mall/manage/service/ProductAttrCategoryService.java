@@ -1,6 +1,8 @@
 package com.lsz.mall.manage.service;
 
 import com.lsz.mall.base.entity.ProductAttributeCategory;
+import com.lsz.mall.base.entity.ProductAttributeCategoryItem;
+import com.lsz.mall.base.vo.CommonPage;
 
 import java.util.List;
 
@@ -29,8 +31,11 @@ public interface ProductAttrCategoryService {
     /**
      * 分页查询属性分类
      */
-    List<ProductAttributeCategory> getList(Integer pageSize, Integer pageNum);
+    CommonPage<ProductAttributeCategory> getPage(Integer pageSize, Integer pageNum);
 
-
+    /**
+     * 获取包含属性的属性分类
+     */
+    List<ProductAttributeCategoryItem> getListWithAttr();
 
 }

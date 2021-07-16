@@ -5,11 +5,14 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.beans.BeanUtils;
 
 import java.util.Date;
 
 @Data
 @TableName("ums_menu")
+@NoArgsConstructor
 public class AdminMenu {
 
     @TableId(type = IdType.AUTO)
@@ -40,4 +43,7 @@ public class AdminMenu {
     private Integer hidden;
 
 
+    public AdminMenu(AdminMenu p) {
+        BeanUtils.copyProperties(p, this);
+    }
 }

@@ -5,6 +5,7 @@ import com.lsz.mall.base.entity.AdminParam;
 import com.lsz.mall.base.entity.AdminRole;
 import com.lsz.mall.base.entity.UpdateAdminPasswordParam;
 import com.lsz.mall.base.vo.CommonPage;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -15,6 +16,8 @@ public interface AdminService {
     Admin register(AdminParam umsAdminParam);
 
     String login(String username, String password);
+
+    UserDetails loadUserByUsername(String username);
 
     String refreshToken(String token);
 

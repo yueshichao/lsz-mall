@@ -4,9 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.lsz.mall.base.entity.ProductCategory;
-import com.lsz.mall.base.entity.ProductCategoryAttributeRelation;
-import com.lsz.mall.base.entity.ProductCategoryParam;
+import com.lsz.mall.base.entity.*;
 import com.lsz.mall.base.vo.CommonPage;
 import com.lsz.mall.manage.dao.ProductCategoryAttrRelationDao;
 import com.lsz.mall.manage.dao.ProductCategoryDao;
@@ -15,7 +13,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayDeque;
 import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 import java.util.stream.Collectors;
 
 @Service
@@ -97,6 +98,33 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
     @Override
     public int updateShowStatus(List<Long> ids, Integer showStatus) {
         return 0;
+    }
+
+    @Override
+    public List<ProductCategoryWithChildrenItem> listWithChildren() {
+
+        // 查出所有数据
+        List<ProductCategory> list = productCategoryDao.selectList(null);
+
+        // 构造树
+        Map<Long, List<ProductCategory>> listByParentId = list.stream().collect(Collectors.groupingBy(ProductCategoryBase::getParentId));
+
+        ProductCategoryWithChildrenItem root = new ProductCategoryWithChildrenItem();
+        root.setId(0L);
+        Queue<ProductCategoryWithChildrenItem> q = new ArrayDeque<>();
+        q.offer(root);
+        while (!q.isEmpty()) {
+            ProductCategoryWithChildrenItem item = q.poll();
+            if (item == null) continue;
+            Long parentId = item.getId();
+            List<ProductCategory> productCategories = listByParentId.get(parentId);
+            if (CollectionUtil.isEmpty(productCategories)) continue;
+            List<ProductCategoryWithChildrenItem> children = productCategories.stream().map(p -> new ProductCategoryWithChildrenItem(p)).collect(Collectors.toList());
+            item.setChildren(children);
+            q.addAll(children);
+        }
+
+        return root.getChildren();
     }
 
     /**

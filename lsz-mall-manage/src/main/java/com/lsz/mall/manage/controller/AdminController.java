@@ -13,6 +13,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,7 +80,7 @@ public class AdminController {
     @ApiOperation(value = "获取当前登录用户信息")
     @RequestMapping(value = "/info", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseMessage getAdminInfo(HttpServletRequest request) {
+    public ResponseMessage getAdminInfo(HttpServletRequest request, Principal principal) {
         // TODO Principal实现？
         String token = request.getHeader(tokenHeader);
         Admin umsAdmin = adminService.getAdminByToken(token);

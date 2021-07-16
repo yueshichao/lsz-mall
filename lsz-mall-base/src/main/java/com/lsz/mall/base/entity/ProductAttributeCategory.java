@@ -4,9 +4,11 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @TableName("pms_product_attribute_category")
+@NoArgsConstructor
 public class ProductAttributeCategory {
 
     @TableId(type = IdType.AUTO)
@@ -20,4 +22,8 @@ public class ProductAttributeCategory {
     // 参数数量
     private Integer paramCount;
 
+    public ProductAttributeCategory(Long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
 }
