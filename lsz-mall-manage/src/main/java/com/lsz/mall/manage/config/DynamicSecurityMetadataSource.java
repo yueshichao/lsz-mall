@@ -3,7 +3,9 @@ package com.lsz.mall.manage.config;
 import cn.hutool.core.util.URLUtil;
 import com.lsz.mall.base.entity.AdminResource;
 import com.lsz.mall.manage.service.AdminResourceService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.access.intercept.FilterInvocationSecurityMetadataSource;
@@ -21,13 +23,21 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * 动态权限数据源，用于获取动态权限规则
  */
-public class DynamicSecurityMetadataSource implements FilterInvocationSecurityMetadataSource {
+@Slf4j
+public class DynamicSecurityMetadataSource implements FilterInvocationSecurityMetadataSource, CommandLineRunner/*使用此接口，在容器启动结束再初始化数据*/ {
 
     private static ConcurrentMap<String, ConfigAttribute> configAttributeMap = new ConcurrentHashMap<>();
 
     @Autowired
     private AdminResourceService resourceService;
 
+    @Override
+    public void run(String... args) throws Exception {
+        log.info("CommandLineRunner callback~~~");
+        loadDataSource();
+    }
+
+    // 该bean构造时，flyway可能还没执行，可能resource表还不存在
     @PostConstruct
     public void loadDataSource() {
         List<AdminResource> resourceList = resourceService.listAll();
