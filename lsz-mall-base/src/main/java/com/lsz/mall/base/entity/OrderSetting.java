@@ -9,8 +9,8 @@ import lombok.Data;
 @Data
 @TableName("oms_order_setting")
 public class OrderSetting {
-    @TableId(type = IdType.AUTO)
 
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     @ApiModelProperty(value = "秒杀订单超时关闭时间(分)")

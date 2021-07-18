@@ -6,14 +6,14 @@ import com.lsz.mall.manage.service.OrderSettingService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 
-@Controller
-@Api(tags = "OrderSettingController", description = "订单设置管理")
+@RestController
+@Api(description = "订单设置管理")
 @RequestMapping("/orderSetting")
 public class OrderSettingController {
+
     @Autowired
     private OrderSettingService orderSettingService;
 
@@ -35,4 +35,5 @@ public class OrderSettingController {
         }
         return ResponseMessage.error();
     }
+
 }
