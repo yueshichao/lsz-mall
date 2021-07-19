@@ -4,7 +4,6 @@ import com.lsz.mall.manage.service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -81,7 +80,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new JwtAuthenticationTokenFilter();
     }
 
-    @DependsOn("flywayInitializer")
+
+    //        flyway.enable为false时，Spring容器内无flywayInitializer，会导致报错
+//    @DependsOn("flywayInitializer")
     @Bean
     public DynamicSecurityMetadataSource dynamicSecurityMetadataSource() {
         return new DynamicSecurityMetadataSource();
