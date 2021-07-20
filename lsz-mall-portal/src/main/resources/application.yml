@@ -1,5 +1,5 @@
 server:
-  port: 7070
+  port: 28019
 
 spring:
   datasource:
@@ -10,15 +10,8 @@ spring:
       min-idle: 10 # 最小空闲连接数
       max-active: 20 # 最大连接数
 
-  flyway:
-    enabled: true
-    locations: classpath:db/migration
-    baselineOnMigrate: true
-    baselineVersion: 1
 
 mybatis:
-#  type-aliases-package: com.example.domain.model
-#  type-handlers-package: com.example.typehandler
   mapper-locations:
     - classpath:mapper/*.xml
   configuration:
@@ -40,14 +33,15 @@ secure.permit-urls:
     - /webjars/springfox-swagger-ui/**
     - /actuator/**
     - /druid/**
-    - /admin/login
-    - /admin/register
-    - /admin/info
-    - /admin/logout
-    - /**
+    - /api/v1/user/login
+    - /api/v1/index-infos
+    - /api/v1/user/info
+    - /api/v1/user/info
+    - /api/v1/user/register
+#    - /** # debug用，放行所有接口
 
 jwt:
   tokenHeader: Authorization #JWT存储的请求头
-  secret: mall-admin-secret #JWT加解密使用的密钥
+  secret: mall-secret #JWT加解密使用的密钥
   expiration: 604800 #JWT的超期限时间(60*60*24*7)
   tokenHead: 'Bearer '  #JWT负载中拿到开头
