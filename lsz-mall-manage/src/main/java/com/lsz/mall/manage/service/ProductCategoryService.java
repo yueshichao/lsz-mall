@@ -50,4 +50,6 @@ public interface ProductCategoryService {
      */
     List<ProductCategoryWithChildrenItem> listWithChildren();
 
+
+    List<ProductCategory> getList(Integer currentLevel);
 }

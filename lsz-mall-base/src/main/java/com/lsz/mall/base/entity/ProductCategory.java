@@ -6,11 +6,13 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
+@NoArgsConstructor
 @TableName("pms_product_category")
 public class ProductCategory extends ProductCategoryBase {
 
@@ -22,4 +24,7 @@ public class ProductCategory extends ProductCategoryBase {
 
     protected Integer productCount;
 
+    public ProductCategory(Long id) {
+        this.id = id;
+    }
 }

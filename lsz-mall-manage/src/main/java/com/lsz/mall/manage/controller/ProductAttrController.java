@@ -1,5 +1,6 @@
 package com.lsz.mall.manage.controller;
 
+import com.lsz.mall.base.entity.ProductAttrInfo;
 import com.lsz.mall.base.entity.ProductAttribute;
 import com.lsz.mall.base.entity.ProductAttributeParam;
 import com.lsz.mall.base.entity.ResponseMessage;
@@ -12,6 +13,8 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -48,6 +51,47 @@ public class ProductAttrController {
         CommonPage<ProductAttribute> page = productAttributeService.getPage(cid, type, pageSize, pageNum);
         return ResponseMessage.ok(page);
 //        return ResponseMessage.ok(page);
+    }
+
+
+    @ApiOperation("修改商品属性信息")
+    @RequestMapping(value = "/update/{id}", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseMessage update(@PathVariable Long id, @RequestBody ProductAttributeParam productAttributeParam) {
+        int count = productAttributeService.update(id, productAttributeParam);
+        if (count > 0) {
+            return ResponseMessage.ok(count);
+        } else {
+            return ResponseMessage.error();
+        }
+    }
+
+    @ApiOperation("查询单个商品属性")
+    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseMessage<ProductAttribute> getItem(@PathVariable Long id) {
+        ProductAttribute productAttribute = productAttributeService.getItem(id);
+        return ResponseMessage.ok(productAttribute);
+    }
+
+    @ApiOperation("批量删除商品属性")
+    @RequestMapping(value = "/delete", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseMessage delete(@RequestParam("ids") List<Long> ids) {
+        int count = productAttributeService.delete(ids);
+        if (count > 0) {
+            return ResponseMessage.ok(count);
+        } else {
+            return ResponseMessage.error();
+        }
+    }
+
+    @ApiOperation("根据商品分类的id获取商品属性及属性分类")
+    @RequestMapping(value = "/attrInfo/{productCategoryId}", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseMessage<List<ProductAttrInfo>> getAttrInfo(@PathVariable Long productCategoryId) {
+        List<ProductAttrInfo> productAttrInfoList = productAttributeService.getProductAttrInfo(productCategoryId);
+        return ResponseMessage.ok(productAttrInfoList);
     }
 
 }

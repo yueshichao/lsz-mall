@@ -2,13 +2,18 @@ package com.lsz.mall.base.vo;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.github.pagehelper.PageInfo;
+import com.lsz.mall.base.entity.Product;
 import com.lsz.mall.base.entity.ProductAttribute;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class CommonPage<T> {
     /**
      * 当前页码
@@ -65,6 +70,16 @@ public class CommonPage<T> {
         result.setPageSize((int) page.getSize());
         result.setTotal(page.getTotal());
         result.setList(page.getRecords());
+        return result;
+    }
+
+    public static <T> CommonPage<T> restPage(IPage page, List<T> list) {
+        CommonPage<T> result = new CommonPage<T>();
+        result.setTotalPage((int) page.getPages());
+        result.setPageNum((int) page.getCurrent());
+        result.setPageSize((int) page.getSize());
+        result.setTotal(page.getTotal());
+        result.setList(list);
         return result;
     }
 }

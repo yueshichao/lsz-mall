@@ -1,8 +1,9 @@
 package com.lsz.mall.base.entity;
 
 import io.swagger.annotations.ApiModelProperty;
-import lombok.*;
-import net.bytebuddy.implementation.bind.annotation.SuperCall;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
@@ -23,4 +24,13 @@ public class ProductCategoryWithChildrenItem extends ProductCategory {
         this.id = p.id;
         this.name = p.name;
     }
+
+    public String getValue() {
+        return id + "";
+    }
+
+    public String getLabel() {
+        return name;
+    }
+
 }

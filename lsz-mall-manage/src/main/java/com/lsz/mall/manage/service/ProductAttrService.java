@@ -1,5 +1,6 @@
 package com.lsz.mall.manage.service;
 
+import com.lsz.mall.base.entity.ProductAttrInfo;
 import com.lsz.mall.base.entity.ProductAttribute;
 import com.lsz.mall.base.entity.ProductAttributeParam;
 import com.lsz.mall.base.vo.CommonPage;
@@ -38,5 +39,10 @@ public interface ProductAttrService {
      */
     @Transactional
     int delete(List<Long> ids);
+
+    /**
+     * 获取商品分类对应属性列表
+     */
+    List<ProductAttrInfo> getProductAttrInfo(Long productCategoryId);
 
 }
