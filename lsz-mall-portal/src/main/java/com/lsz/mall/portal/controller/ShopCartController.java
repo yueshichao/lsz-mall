@@ -60,7 +60,7 @@ public class ShopCartController {
 
     @GetMapping("/shop-cart/settle")
     @ApiOperation(value = "根据购物项id查询购物项明细")
-    public Res<List<ShoppingCartItemVO>> getDetail(List<Long> cartItemIds) {
+    public Res<List<ShoppingCartItemVO>> getDetail(@RequestParam List<Long> cartItemIds) {
         List<ShoppingCartItemVO> list = shoppingCartService.getDetail(cartItemIds);
         return Res.ok(list);
     }

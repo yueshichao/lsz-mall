@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Page;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -81,5 +82,9 @@ public class CommonPage<T> {
         result.setTotal(page.getTotal());
         result.setList(list);
         return result;
+    }
+
+    public static <T> CommonPage<T> empty(Integer pageNo, Integer pageSize) {
+        return new CommonPage(pageNo, pageSize, 0, 0L, new ArrayList());
     }
 }

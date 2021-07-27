@@ -36,8 +36,8 @@ secure.permit-urls:
     - /api/v1/user/login
     - /api/v1/index-infos
     - /api/v1/user/info
-    - /api/v1/user/info
     - /api/v1/user/register
+    - /api/v1/user/logout
 #    - /** # debug用，放行所有接口
 
 jwt:

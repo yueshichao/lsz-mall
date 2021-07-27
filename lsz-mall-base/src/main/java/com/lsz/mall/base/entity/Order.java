@@ -1,7 +1,5 @@
 package com.lsz.mall.base.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.annotations.ApiModelProperty;
@@ -17,7 +15,7 @@ import java.util.Date;
 public class Order {
 
     @ApiModelProperty(value = "订单id")
-    @TableId(type = IdType.AUTO)
+//    @TableId(type = IdType.AUTO)
     private Long id;
 
     private Long memberId;
@@ -147,5 +145,6 @@ public class Order {
 
     @ApiModelProperty(value = "修改时间")
     private Date modifyTime;
+
 
 }

@@ -1,14 +1,21 @@
 package com.lsz.mall.base.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.beans.BeanUtils;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 
+@TableName("oms_order_item")
 @Data
+@NoArgsConstructor
 public class OrderItem {
 
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     @ApiModelProperty(value = "订单id")
@@ -64,4 +71,18 @@ public class OrderItem {
     @ApiModelProperty(value = "商品销售属性:[{'key':'颜色','value':'颜色'},{'key':'容量','value':'4G'}]")
     private String productAttr;
 
+    public OrderItem(CartItem cartItem) {
+        // productId, productPic, productName, productBrand, productSn
+        // productSkuId, productSkuCode, productCategoryId
+        BeanUtils.copyProperties(cartItem, this);
+        this.productQuantity = cartItem.getQuantity();
+        this.id = null;
+
+        // 以下属性需从其他地方赋值
+        // orderId, orderSn
+        // productPrice, productAttr
+        // promotionName, promotionAmount, couponAmount
+        // integrationAmount, realAmount, giftIntegration
+        // giftGrowth
+    }
 }

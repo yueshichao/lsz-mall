@@ -8,6 +8,7 @@
         <module>lsz-mall-manage</module>
         <module>lsz-mall-base</module>
         <module>lsz-mall-flyway</module>
+        <module>lsz-mall-portal</module>
     </modules>
 
     <parent>

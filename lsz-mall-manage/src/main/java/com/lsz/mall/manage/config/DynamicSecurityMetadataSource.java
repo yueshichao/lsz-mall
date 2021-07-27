@@ -37,8 +37,8 @@ public class DynamicSecurityMetadataSource implements FilterInvocationSecurityMe
         loadDataSource();
     }
 
-    // 该bean构造时，flyway可能还没执行，可能resource表还不存在
-    @PostConstruct
+    // 该bean构造时，flyway可能还没执行，可能resource表还不存在，所以不能用PostConstruct
+//    @PostConstruct
     public void loadDataSource() {
         List<AdminResource> resourceList = resourceService.listAll();
         for (AdminResource resource : resourceList) {

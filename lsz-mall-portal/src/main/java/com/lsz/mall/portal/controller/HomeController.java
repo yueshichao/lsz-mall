@@ -21,7 +21,7 @@ public class HomeController {
     HomeService homeService;
 
     @GetMapping("/index-infos")
-    @ApiOperation(value = "获取首页数据", notes = "轮播图、新品、推荐等")
+    @ApiOperation(value = "获取首页数据")
     public Res homeInfos() {
         HomeInfoVO homeInfoVO = homeService.homeInfos();
         return Res.ok(homeInfoVO);

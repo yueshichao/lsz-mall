@@ -105,7 +105,20 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 
     @Override
     public List<ShoppingCartItemVO> getDetail(List<Long> cartItemIds) {
-        return null;
+        Member currentMember = userService.getCurrentMember();
+
+        LambdaQueryWrapper<CartItem> wrapper = new LambdaQueryWrapper<CartItem>()
+                .eq(CartItem::getMemberId, currentMember.getId())
+                .in(CartItem::getId, cartItemIds);
+
+        List<CartItem> cartItems = cartItemDao.selectList(wrapper);
+        List<ShoppingCartItemVO> list = Optional.ofNullable(cartItems)
+                .orElseGet(ArrayList::new)
+                .stream()
+                .map(r -> new ShoppingCartItemVO(r))
+                .collect(Collectors.toList());
+
+        return list;
     }
 
 }

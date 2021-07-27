@@ -19,7 +19,7 @@ public class HomeCarouselPicVO {
     private String redirectUrl;
 
     public HomeCarouselPicVO(HomeAdvertise homeAdvertise) {
-        this.carouselUrl = homeAdvertise.getUrl();
-        this.redirectUrl = homeAdvertise.getUrl();
+        this.carouselUrl = homeAdvertise.getPic();
+        this.redirectUrl = homeAdvertise.getPic();
     }
 }

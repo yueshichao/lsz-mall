@@ -32,7 +32,7 @@ public class UserController {
 
 
     @PostMapping("/user/login")
-    @ApiOperation(value = "登录接口", notes = "返回token")
+    @ApiOperation(value = "登录接口")
     public Res<String> login(@RequestBody @Valid UserRegisterParam userLoginParam) {
 
         String token = userService.login(userLoginParam);
