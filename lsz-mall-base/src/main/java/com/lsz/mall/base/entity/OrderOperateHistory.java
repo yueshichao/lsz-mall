@@ -1,5 +1,7 @@
 package com.lsz.mall.base.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
+import com.alibaba.fastjson.serializer.ToStringSerializer;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -16,6 +18,7 @@ public class OrderOperateHistory {
     private Long id;
 
     @ApiModelProperty(value = "订单id")
+    @JSONField(serializeUsing = ToStringSerializer.class)
     private Long orderId;
 
     @ApiModelProperty(value = "操作人：用户；系统；后台管理员")

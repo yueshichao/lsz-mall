@@ -5,6 +5,8 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 
 @Data
 @NoArgsConstructor
@@ -36,6 +38,8 @@ public class ProductDetailVO {
 
     @ApiModelProperty("商品详情字段")
     private String goodsDetailContent;
+
+    private List<SkuStockVO> skuStockList;
 
     public ProductDetailVO(Product product) {
         this.goodsId = product.getId();

@@ -9,12 +9,17 @@ spring:
       initial-size: 5 # 连接池初始化大小
       min-idle: 10 # 最小空闲连接数
       max-active: 20 # 最大连接数
-
   flyway:
     enabled: true
     locations: classpath:db/migration
     baselineOnMigrate: true
     baselineVersion: 1
+  application:
+    name: lsz-mall-admin
+  servlet:
+    multipart:
+      enabled: true # 开启文件上传
+      max-file-size: 10MB # 限制文件上传大小为10M
 
 mybatis:
 #  type-aliases-package: com.example.domain.model
@@ -51,3 +56,7 @@ jwt:
   secret: mall-admin-secret #JWT加解密使用的密钥
   expiration: 604800 #JWT的超期限时间(60*60*24*7)
   tokenHead: 'Bearer '  #JWT负载中拿到开头
+
+pic:
+  url: http://localhost:7070/file/image/
+  filePath: /tmp/

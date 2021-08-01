@@ -1,5 +1,7 @@
 package com.lsz.mall.manage.service.impl;
 
+import cn.hutool.core.date.DateField;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -35,11 +37,18 @@ public class OrderServiceImpl implements OrderService {
                 .eq(queryParam.getStatus() != null, Order::getStatus, queryParam.getStatus())
                 .eq(queryParam.getSourceType() != null, Order::getSourceType, queryParam.getSourceType())
                 .eq(queryParam.getOrderType() != null, Order::getOrderType, queryParam.getOrderType())
+//                .eq(StrUtil.isNotBlank(queryParam.getCreateTime()), Order::getCreateTime, DateUtil.parse(queryParam.getCreateTime()).toJdkDate())
                 .and(StrUtil.isNotBlank(queryParam.getReceiverKeyword()), w -> w
                         .like(StrUtil.isNotBlank(queryParam.getReceiverKeyword()), Order::getReceiverName, queryParam.getReceiverKeyword())
                         .or()
                         .like(StrUtil.isNotBlank(queryParam.getReceiverKeyword()), Order::getReceiverPhone, queryParam.getReceiverKeyword())
                 );
+        if (StrUtil.isNotBlank(queryParam.getCreateTime())) {
+            Date startTime = DateUtil.parse(queryParam.getCreateTime()).toJdkDate();
+            Date endTime = DateUtil.date(startTime).offset(DateField.DAY_OF_MONTH, 1).toJdkDate();
+            wrapper.between(Order::getCreateTime, startTime, endTime);
+        }
+
         IPage<Order> page = orderDao.selectPage(new Page<>(pageNum, pageSize), wrapper);
         return CommonPage.restPage(page);
     }

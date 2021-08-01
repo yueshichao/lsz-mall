@@ -12,6 +12,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 @Service
@@ -72,10 +73,23 @@ public class ProductAttrServiceImpl implements ProductAttrService {
 
     @Override
     public int delete(List<Long> ids) {
+        ProductAttribute productAttribute = productAttrDao.selectById(ids.get(0));
+        Integer type = productAttribute.getType();
 
-        throw new ServiceException("功能尚未完成");
+        @NotEmpty Long categoryId = productAttribute.getProductAttributeCategoryId();
+        ProductAttributeCategory productAttributeCategory = productAttrCategoryDao.selectById(categoryId);
+        int count = productAttrDao.deleteBatchIds(ids);
 
-//        return productAttrDao.deleteBatchIds(ids);
+
+        if (type == 0) {
+            int afterCount = productAttributeCategory.getAttributeCount() - count;
+            productAttributeCategory.setAttributeCount(afterCount >= 0 ? afterCount : 0);
+        } else if (type == 1) {
+            int afterCount = productAttributeCategory.getParamCount() - count;
+            productAttributeCategory.setParamCount(afterCount >= 0 ? afterCount : 0);
+        }
+        productAttrCategoryDao.updateById(productAttributeCategory);
+        return count;
     }
 
     @Override

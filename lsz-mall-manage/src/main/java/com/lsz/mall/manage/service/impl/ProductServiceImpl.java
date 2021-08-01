@@ -2,7 +2,6 @@ package com.lsz.mall.manage.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -12,12 +11,15 @@ import com.lsz.mall.base.vo.CommonPage;
 import com.lsz.mall.manage.dao.*;
 import com.lsz.mall.manage.service.ProductService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.webresources.WarResource;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 @Slf4j
 @Service
@@ -52,41 +54,48 @@ public class ProductServiceImpl implements ProductService {
         // 保存商品信息
         product.setId(null);
         int count = productDao.insert(product);
+        Long productId = product.getId();
 
         // 保存商品的关联信息
         // 1. 会员价格
         Optional.ofNullable(productParam.getMemberPriceList())
                 .ifPresent(list -> {
+                    list.forEach(e -> e.setProductId(productId));
                     list.forEach(e -> memberPriceDao.insert(e));
                 });
 
         // 2. 阶梯价格
         Optional.ofNullable(productParam.getProductLadderList())
                 .ifPresent(list -> {
+                    list.forEach(e -> e.setProductId(productId));
                     list.forEach(e -> productLadderDao.insert(e));
                 });
 
         // 3. 满减价格
         Optional.ofNullable(productParam.getProductFullReductionList())
                 .ifPresent(list -> {
+                    list.forEach(e -> e.setProductId(productId));
                     list.forEach(e -> productFullReductionDao.insert(e));
                 });
 
         // 4. 库存信息
         Optional.ofNullable(productParam.getSkuStockList())
                 .ifPresent(list -> {
+                    list.forEach(e -> e.setProductId(productId));
                     list.forEach(e -> skuStockDao.insert(e));
                 });
 
         // 5. 商品规格
         Optional.ofNullable(productParam.getProductAttributeValueList())
                 .ifPresent(list -> {
+                    list.forEach(e -> e.setProductId(productId));
                     list.forEach(e -> productAttrValueDao.insert(e));
                 });
 
         // 6. 专题
         Optional.ofNullable(productParam.getSubjectProductRelationList())
                 .ifPresent(list -> {
+                    list.forEach(e -> e.setProductId(productId));
                     list.forEach(e -> subjectProductRelationDao.insert(e));
                 });
 
@@ -99,6 +108,7 @@ public class ProductServiceImpl implements ProductService {
 
         QueryWrapper<Product> queryWrapper = new QueryWrapper<>();
         queryWrapper.lambda()
+                .eq(Product::getDeleteStatus, 0)
                 .eq(productQueryParam.getPublishStatus() != null, Product::getPublishStatus, productQueryParam.getPublishStatus())
                 .eq(productQueryParam.getVerifyStatus() != null, Product::getVerifyStatus, productQueryParam.getVerifyStatus())
                 .eq(productQueryParam.getBrandId() != null, Product::getBrandId, productQueryParam.getBrandId())
@@ -125,6 +135,7 @@ public class ProductServiceImpl implements ProductService {
         BeanUtils.copyProperties(productParam, product);
 
         // 保存商品信息
+        Long productId = id;
         product.setId(id);
         int count = productDao.updateById(product);
 
@@ -135,6 +146,7 @@ public class ProductServiceImpl implements ProductService {
         memberPriceDao.delete(memberPriceWrapper);
         Optional.ofNullable(productParam.getMemberPriceList())
                 .ifPresent(list -> {
+                    list.forEach(e -> e.setProductId(productId));
                     list.forEach(e -> memberPriceDao.insert(e));
                 });
 
@@ -144,6 +156,7 @@ public class ProductServiceImpl implements ProductService {
         productLadderDao.delete(productLadderWrapper);
         Optional.ofNullable(productParam.getProductLadderList())
                 .ifPresent(list -> {
+                    list.forEach(e -> e.setProductId(productId));
                     list.forEach(e -> productLadderDao.insert(e));
                 });
 
@@ -153,6 +166,7 @@ public class ProductServiceImpl implements ProductService {
         productFullReductionDao.delete(productFullReductionWrapper);
         Optional.ofNullable(productParam.getProductFullReductionList())
                 .ifPresent(list -> {
+                    list.forEach(e -> e.setProductId(productId));
                     list.forEach(e -> productFullReductionDao.insert(e));
                 });
 
@@ -162,6 +176,7 @@ public class ProductServiceImpl implements ProductService {
         skuStockDao.delete(skuStockWrapper);
         Optional.ofNullable(productParam.getSkuStockList())
                 .ifPresent(list -> {
+                    list.forEach(e -> e.setProductId(productId));
                     list.forEach(e -> skuStockDao.insert(e));
                 });
 
@@ -171,6 +186,7 @@ public class ProductServiceImpl implements ProductService {
         productAttrValueDao.delete(productAttrValueWrapper);
         Optional.ofNullable(productParam.getProductAttributeValueList())
                 .ifPresent(list -> {
+                    list.forEach(e -> e.setProductId(productId));
                     list.forEach(e -> productAttrValueDao.insert(e));
                 });
 
@@ -180,6 +196,7 @@ public class ProductServiceImpl implements ProductService {
         subjectProductRelationDao.delete(subjectProductRelationWrapper);
         Optional.ofNullable(productParam.getSubjectProductRelationList())
                 .ifPresent(list -> {
+                    list.forEach(e -> e.setProductId(productId));
                     list.forEach(e -> subjectProductRelationDao.insert(e));
                 });
 
@@ -189,31 +206,65 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<Product> list(String keyword) {
-        return null;
+        QueryWrapper<Product> queryWrapper = new QueryWrapper<>();
+        queryWrapper.lambda()
+                .eq(Product::getDeleteStatus, 0)
+                .like(StrUtil.isNotBlank(keyword), Product::getName, keyword);
+        return productDao.selectList(queryWrapper);
     }
 
     @Override
     public int updateVerifyStatus(List<Long> ids, Integer verifyStatus, String detail) {
-        return 0;
+
+        int count = updateByIds(ids, (product) -> {
+            product.setVerifyStatus(verifyStatus);
+            product.setDetailDesc(detail);
+        });
+
+        return count;
+    }
+
+    private int updateByIds(List<Long> ids, Consumer<Product> updateFieldFunc) {
+        LambdaQueryWrapper<Product> wrapper = new LambdaQueryWrapper<Product>()
+                .in(Product::getId, ids);
+        Product product = new Product();
+        updateFieldFunc.accept(product);
+        return productDao.update(product, wrapper);
     }
 
     @Override
     public int updatePublishStatus(List<Long> ids, Integer publishStatus) {
-        return 0;
+        int count = updateByIds(ids, (product) -> {
+            product.setPublishStatus(publishStatus);
+        });
+
+        return count;
     }
 
     @Override
     public int updateRecommendStatus(List<Long> ids, Integer recommendStatus) {
-        return 0;
+        int count = updateByIds(ids, (product) -> {
+            product.setRecommandStatus(recommendStatus);
+        });
+
+        return count;
     }
 
     @Override
     public int updateNewStatus(List<Long> ids, Integer newStatus) {
-        return 0;
+        int count = updateByIds(ids, (product) -> {
+            product.setNewStatus(newStatus);
+        });
+
+        return count;
     }
 
     @Override
     public int updateDeleteStatus(List<Long> ids, Integer deleteStatus) {
-        return 0;
+        int count = updateByIds(ids, (product) -> {
+            product.setDeleteStatus(deleteStatus);
+        });
+
+        return count;
     }
 }

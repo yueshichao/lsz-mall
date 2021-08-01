@@ -18,6 +18,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.Optional;
 
 @Service
@@ -61,7 +62,9 @@ public class UserServiceImpl implements UserService {
     public String register(UserRegisterParam userRegisterParam) {
         Member member = new Member();
         member.setUsername(userRegisterParam.getLoginName());
+        member.setNickname(userRegisterParam.getLoginName());
         member.setPassword(passwordEncoder.encode(userRegisterParam.getPassword()));
+        member.setCreateTime(new Date());
         int insertCount = memberDao.insert(member);
         if (insertCount <= 0) {
             throw new ServiceException("注册失败！");

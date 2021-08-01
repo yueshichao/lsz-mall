@@ -1,5 +1,6 @@
 logging:
   level:
+    com.lsz.mall.manage: debug
     druid.sql.Statement: debug
 
 spring:
@@ -19,7 +20,10 @@ spring:
       result-set-close-after-log-enabled: false
       statement-prepare-after-log-enabled: false
       statement-parameter-set-log-enabled: false
-
-
   flyway:
     enabled: true
+
+# 上传文件路径
+pic:
+  url: http://localhost:7070/file/image/
+  filePath: 'E:\tmp\'

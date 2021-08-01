@@ -3,16 +3,20 @@ package com.lsz.mall.portal.entity;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import java.io.Serializable;
+import javax.validation.constraints.NotNull;
 
 
 @Data
 public class SaveCartItemParam {
 
     @ApiModelProperty("商品数量")
-    private Integer goodsCount;
+    private Integer productCount;
 
     @ApiModelProperty("商品id")
-    private Long goodsId;
+    @NotNull
+    private Long productId;
+
+    @NotNull
+    private Long productSkuId;
 
 }

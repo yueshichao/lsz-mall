@@ -1,5 +1,7 @@
 package com.lsz.mall.base.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
+import com.alibaba.fastjson.serializer.ToStringSerializer;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -12,6 +14,7 @@ import java.math.BigDecimal;
 public class MoneyInfoParam {
 
     @ApiModelProperty("订单ID")
+    @JSONField(serializeUsing = ToStringSerializer.class)
     private Long orderId;
 
     @ApiModelProperty("运费金额")

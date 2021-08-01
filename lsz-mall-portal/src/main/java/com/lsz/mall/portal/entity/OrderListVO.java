@@ -1,5 +1,7 @@
 package com.lsz.mall.portal.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
+import com.alibaba.fastjson.serializer.ToStringSerializer;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.lsz.mall.base.entity.Order;
 import com.lsz.mall.base.entity.OrderStatusEnum;
@@ -15,6 +17,7 @@ import java.util.List;
 @NoArgsConstructor
 public class OrderListVO {
 
+    @JSONField(serializeUsing = ToStringSerializer.class)
     private Long orderId;
 
     @ApiModelProperty("订单号")

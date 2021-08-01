@@ -20,6 +20,6 @@ public class HomeCarouselPicVO {
 
     public HomeCarouselPicVO(HomeAdvertise homeAdvertise) {
         this.carouselUrl = homeAdvertise.getPic();
-        this.redirectUrl = homeAdvertise.getPic();
+        this.redirectUrl = homeAdvertise.getUrl();
     }
 }

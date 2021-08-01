@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lsz.mall.base.entity.CartItem;
 import com.lsz.mall.base.entity.Member;
 import com.lsz.mall.base.entity.Product;
+import com.lsz.mall.base.entity.ServiceException;
 import com.lsz.mall.base.vo.CommonPage;
 import com.lsz.mall.portal.dao.CartItemDao;
 import com.lsz.mall.portal.dao.ProductDao;
@@ -14,6 +15,7 @@ import com.lsz.mall.portal.entity.SaveCartItemParam;
 import com.lsz.mall.portal.entity.ShoppingCartItemVO;
 import com.lsz.mall.portal.entity.UpdateCartItemParam;
 import com.lsz.mall.portal.service.ShoppingCartService;
+import com.lsz.mall.portal.service.SkuStockService;
 import com.lsz.mall.portal.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +39,9 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 
     @Autowired
     ProductDao productDao;
+
+    @Autowired
+    SkuStockService skuStockService;
 
     @Override
     public CommonPage<ShoppingCartItemVO> getPage(Integer pageNumber, Integer pageSize) {
@@ -69,16 +74,45 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 
     @Override
     public int saveItem(SaveCartItemParam saveCartItemParam) {
-        Long productId = saveCartItemParam.getGoodsId();
+        Member currentMember = userService.getCurrentMember();
+        Long productId = saveCartItemParam.getProductId();
+        Long productSkuId = saveCartItemParam.getProductSkuId();
+        Integer productCount = saveCartItemParam.getProductCount();
+
         Product product = productDao.selectById(productId);
 
+        int validSkuStock = skuStockService.getValidSkuStock(productSkuId);
+        if (productCount > validSkuStock) {
+            throw new ServiceException("没有足够的库存！");
+        }
+
+        // 先判断购物车是否已经存在
+        LambdaQueryWrapper<CartItem> cartItemWrapper = new LambdaQueryWrapper<CartItem>()
+                .eq(CartItem::getProductId, productId)
+                .eq(CartItem::getMemberId, currentMember.getId())
+                .eq(CartItem::getProductSkuId, productSkuId);
+        CartItem preCartItem = cartItemDao.selectOne(cartItemWrapper);
+        if (preCartItem != null) {
+            Integer preQuantity = preCartItem.getQuantity();
+            int curQuantity = preQuantity + productCount;
+            if (curQuantity > validSkuStock) {
+                throw new ServiceException("没有足够的库存！");
+            }
+            preCartItem.setQuantity(curQuantity);
+            log.debug("购物车之前存在，只增加数量，preQuantity = {}, curQuantity = {}", preQuantity, curQuantity);
+            int updateCount = cartItemDao.updateById(preCartItem);
+            return updateCount;
+        }
+
+        // 购物车中不存在，添加
         CartItem cartItem = new CartItem();
-        Member currentMember = userService.getCurrentMember();
         cartItem.setMemberId(currentMember.getId());
         cartItem.setProductId(productId);
+        cartItem.setProductSkuId(productSkuId);
+        cartItem.setProductPic(product.getPic());
         cartItem.setProductName(product.getName());
         cartItem.setPrice(product.getPrice());
-        cartItem.setQuantity(saveCartItemParam.getGoodsCount());
+        cartItem.setQuantity(productCount);
         cartItem.setCreateDate(new Date());
         log.debug("userName = {}, 购物车添加物品 = {}", currentMember.getUsername(), JSON.toJSONString(cartItem));
         return cartItemDao.insert(cartItem);

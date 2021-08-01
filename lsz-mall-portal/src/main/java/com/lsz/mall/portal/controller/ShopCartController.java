@@ -10,6 +10,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -39,7 +40,7 @@ public class ShopCartController {
 
     @PostMapping("/shop-cart")
     @ApiOperation(value = "添加商品到购物车接口")
-    public Res saveShoppingCartItem(@RequestBody SaveCartItemParam saveCartItemParam) {
+    public Res saveShoppingCartItem(@Validated @RequestBody SaveCartItemParam saveCartItemParam) {
         int count = shoppingCartService.saveItem(saveCartItemParam);
         return Res.ok(count);
     }

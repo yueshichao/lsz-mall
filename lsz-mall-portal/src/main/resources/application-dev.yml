@@ -4,7 +4,7 @@ server:
 logging:
   level:
     com.lsz.mall.portal: debug
-    druid.sql.Statement: debug
+#    druid.sql.Statement: debug
 
 spring:
   datasource:

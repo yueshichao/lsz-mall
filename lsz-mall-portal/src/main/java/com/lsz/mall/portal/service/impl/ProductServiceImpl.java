@@ -5,16 +5,21 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lsz.mall.base.entity.Product;
+import com.lsz.mall.base.entity.SkuStock;
 import com.lsz.mall.base.vo.CommonPage;
 import com.lsz.mall.portal.dao.ProductDao;
+import com.lsz.mall.portal.dao.SkuStockDao;
 import com.lsz.mall.portal.entity.ProductDetailVO;
 import com.lsz.mall.portal.entity.ProductSearchGoodsVO;
+import com.lsz.mall.portal.entity.SkuStockVO;
 import com.lsz.mall.portal.service.ProductService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -24,6 +29,9 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     ProductDao productDao;
 
+    @Autowired
+    SkuStockDao skuStockDao;
+
     @Override
     public CommonPage<ProductSearchGoodsVO> search(String keyword, Long goodsCategoryId,
                                                    String orderBy, Integer pageNumber, Integer pageSize) {
@@ -31,16 +39,18 @@ public class ProductServiceImpl implements ProductService {
 
         boolean existKeyword = StrUtil.isNotBlank(keyword);
         wrapper.eq(goodsCategoryId != null, Product::getProductCategoryId, goodsCategoryId)
+                .eq(Product::getDeleteStatus, 0)
+                .eq(Product::getPublishStatus, 1)
                 .and(existKeyword, w -> {
-                    w.eq(Product::getName, keyword)
+                    w.like(Product::getName, keyword)
                             .or()
-                            .eq(Product::getDescription, keyword)
+                            .like(Product::getDescription, keyword)
                             .or()
-                            .eq(Product::getProductCategoryName, keyword)
+                            .like(Product::getProductCategoryName, keyword)
                             .or()
-                            .eq(Product::getBrandName, keyword)
+                            .like(Product::getBrandName, keyword)
                             .or()
-                            .eq(Product::getSubTitle, keyword);
+                            .like(Product::getSubTitle, keyword);
                 });
         IPage<Product> page = productDao.selectPage(new Page<>(pageNumber, pageSize), wrapper);
         List<ProductSearchGoodsVO> result = page.getRecords()
@@ -51,9 +61,20 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ProductDetailVO getDetail(Long goodsId) {
-        Product product = productDao.selectById(goodsId);
+    public ProductDetailVO getDetail(Long productId) {
+
+        Product product = productDao.selectById(productId);
+        LambdaQueryWrapper<SkuStock> skuStockWrapper = new LambdaQueryWrapper<SkuStock>()
+                .eq(SkuStock::getProductId, productId);
+        List<SkuStock> skuStocks = skuStockDao.selectList(skuStockWrapper);
+        List<SkuStockVO> skuStockVOS = Optional.ofNullable(skuStocks)
+                .orElseGet(ArrayList::new)
+                .stream()
+                .map(s -> new SkuStockVO(s))
+                .collect(Collectors.toList());
+
         ProductDetailVO productDetailVO = new ProductDetailVO(product);
+        productDetailVO.setSkuStockList(skuStockVOS);
         return productDetailVO;
     }
 }

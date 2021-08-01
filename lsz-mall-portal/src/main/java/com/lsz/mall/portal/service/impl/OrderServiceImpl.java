@@ -1,5 +1,6 @@
 package com.lsz.mall.portal.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -11,10 +12,7 @@ import com.lsz.mall.portal.entity.OrderDetailVO;
 import com.lsz.mall.portal.entity.OrderItemVO;
 import com.lsz.mall.portal.entity.OrderListVO;
 import com.lsz.mall.portal.entity.SaveOrderParam;
-import com.lsz.mall.portal.service.IdService;
-import com.lsz.mall.portal.service.OrderService;
-import com.lsz.mall.portal.service.ShoppingCartService;
-import com.lsz.mall.portal.service.UserService;
+import com.lsz.mall.portal.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -51,6 +49,12 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     ProductDao productDao;
 
+    @Autowired
+    SkuStockDao skuStockDao;
+
+    @Autowired
+    SkuStockService skuStockService;
+
     @Override
     public String saveOrder(SaveOrderParam saveOrderParam) {
         Member currentMember = userService.getCurrentMember();
@@ -65,8 +69,31 @@ public class OrderServiceImpl implements OrderService {
 
         List<CartItem> cartItems = cartItemDao.selectBatchIds(cartItemIds);
 
+
+        // 锁库存
+        Map<Long, Integer> productSkuId2Count = cartItems.stream()
+                .collect(
+                        Collectors.groupingBy(
+                                CartItem::getProductSkuId,
+                                Collectors.mapping(CartItem::getQuantity, Collectors.summingInt(i -> i))
+                        )
+                );
+
+
+        for (Map.Entry<Long, Integer> entry : productSkuId2Count.entrySet()) {
+            Long productSkuId = entry.getKey();
+            Integer count = entry.getValue();
+            // 订单减库存设计 https://www.cnblogs.com/lichihua/p/10803305.html
+            int updateCount = skuStockDao.lockStock(productSkuId, count);
+            log.debug("productSkuId = {}, count = {}, updateCount = {}", productSkuId, count, updateCount);
+            if (updateCount == 0) {
+                String productName = cartItems.stream().filter(c -> productSkuId.equals(c.getProductSkuId())).findAny().map(CartItem::getProductName).orElse("");
+                throw new ServiceException(StrUtil.format("{} 库存不足！", productName));
+            }
+        }
+
         // 收货地址，计算价格
-        Order order = generate(currentMember, userAddress, cartItems);
+        Order order = generatePrice(currentMember, userAddress, cartItems);
         order.setCreateTime(new Date());
         // 0->未支付；1->支付宝；2->微信
         order.setPayType(1);
@@ -85,7 +112,7 @@ public class OrderServiceImpl implements OrderService {
         // ID从id服务来
         Long orderId = idService.generateOrderId();
         order.setId(orderId);
-        // TODO
+        // TODO orderSn
         String orderSn = orderId + "";
         order.setOrderSn(orderSn);
 
@@ -107,6 +134,8 @@ public class OrderServiceImpl implements OrderService {
         List<OrderItem> orderItems = cartItems.stream()
                 .map(c -> {
                     OrderItem orderItem = new OrderItem(c);
+                    orderItem.setProductAttr(c.getProductAttr());
+                    orderItem.setProductPic(c.getProductPic());
                     orderItem.setOrderId(order.getId());
                     orderItem.setOrderSn(order.getOrderSn());
                     return orderItem;
@@ -136,7 +165,7 @@ public class OrderServiceImpl implements OrderService {
         return orderSn;
     }
 
-    private Order generate(Member currentMember, UserAddress userAddress, List<CartItem> cartItems) {
+    private Order generatePrice(Member currentMember, UserAddress userAddress, List<CartItem> cartItems) {
         Order order = new Order();
 
         // 接收人信息
@@ -241,9 +270,44 @@ public class OrderServiceImpl implements OrderService {
                 .eq(Order::getMemberId, currentMember.getId())
                 .eq(Order::getId, orderId);
 
-        Order order = new Order();
+        // TODO 锁住订单
+        // 释放原本锁住的库存
+        Order order = orderDao.selectById(orderId);
+        synchronized (orderId.intern()) {
+            if (OrderStatusEnum.TO_PAY.getCode() == order.getStatus()) {
+                LambdaQueryWrapper<OrderItem> cartItemWrapper = new LambdaQueryWrapper<OrderItem>()
+                        .eq(OrderItem::getOrderId, orderId);
+                List<OrderItem> orderItems = orderItemDao.selectList(cartItemWrapper);
+                Map<Long, Integer> productSkuId2Count = orderItems.stream()
+                        .collect(Collectors.groupingBy(p -> p.getProductSkuId(), Collectors.mapping(p -> p.getProductQuantity(), Collectors.summingInt(i -> i))));
+                for (Map.Entry<Long, Integer> entry : productSkuId2Count.entrySet()) {
+                    Long productSkuId = entry.getKey();
+                    Integer count = entry.getValue();
+                    log.debug("未付款释放锁库存 productSkuId = {}, count = {}", productSkuId, count);
+                    skuStockDao.lockStock(productSkuId, -count);
+                }
+            } else if(OrderStatusEnum.TO_POST_PRODUCT.getCode() == order.getStatus()) {
+                LambdaQueryWrapper<OrderItem> cartItemWrapper = new LambdaQueryWrapper<OrderItem>()
+                        .eq(OrderItem::getOrderId, orderId);
+                List<OrderItem> orderItems = orderItemDao.selectList(cartItemWrapper);
+                Map<Long, Integer> productSkuId2Count = orderItems.stream()
+                        .collect(Collectors.groupingBy(p -> p.getProductSkuId(), Collectors.mapping(p -> p.getProductQuantity(), Collectors.summingInt(i -> i))));
+                for (Map.Entry<Long, Integer> entry : productSkuId2Count.entrySet()) {
+                    Long productSkuId = entry.getKey();
+                    Integer count = entry.getValue();
+                    log.debug("退货加库存 productSkuId = {}, count = {}", productSkuId, count);
+                    skuStockDao.incrTrueStock(productSkuId, count);
+                }
+            } else {
+                log.warn("取消订单，order id = {}, status = {}", order.getId(), order.getStatus());
+            }
+        }
+
+
+//        Order order = new Order();
         order.setStatus(OrderStatusEnum.INVALID.getCode());
         int count = orderDao.update(order, wrapper);
+
 
         return count;
     }
@@ -271,6 +335,15 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(OrderStatusEnum.TO_POST_PRODUCT.getCode());
         order.setPaymentTime(new Date());
         orderDao.update(order, wrapper);
+
+        // 扣减真实库存
+        LambdaQueryWrapper<OrderItem> orderItemWrapper = new LambdaQueryWrapper<OrderItem>()
+                .eq(OrderItem::getOrderId, orderId);
+        List<OrderItem> orderItems = orderItemDao.selectList(orderItemWrapper);
+        orderItems.forEach(orderItem -> {
+                    skuStockDao.decrTrueStock(orderItem.getProductSkuId(), orderItem.getProductQuantity());
+                }
+        );
         log.info("userId = {}, 支付成功！", currentMember.getId());
         return 1;
     }

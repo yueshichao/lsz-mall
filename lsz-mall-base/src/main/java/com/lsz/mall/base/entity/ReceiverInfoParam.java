@@ -1,5 +1,7 @@
 package com.lsz.mall.base.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
+import com.alibaba.fastjson.serializer.ToStringSerializer;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -10,6 +12,7 @@ import lombok.Data;
 public class ReceiverInfoParam {
 
     @ApiModelProperty(value = "订单ID")
+    @JSONField(serializeUsing = ToStringSerializer.class)
     private Long orderId;
 
     @ApiModelProperty(value = "收货人姓名")

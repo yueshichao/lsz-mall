@@ -14,6 +14,7 @@ public interface ShoppingCartService {
 
     List<ShoppingCartItemVO> getList();
 
+    @Transactional
     int saveItem(SaveCartItemParam saveCartItemParam);
 
     @Transactional

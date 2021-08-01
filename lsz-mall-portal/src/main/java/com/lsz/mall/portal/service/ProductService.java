@@ -8,6 +8,6 @@ public interface ProductService {
 
     CommonPage<ProductSearchGoodsVO> search(String keyword, Long goodsCategoryId, String orderBy, Integer pageNumber, Integer pageSize);
 
-    ProductDetailVO getDetail(Long goodsId);
+    ProductDetailVO getDetail(Long productId);
 
 }
