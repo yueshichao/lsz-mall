@@ -84,15 +84,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Member getCurrentMember() {
-        SecurityContext ctx = SecurityContextHolder.getContext();
-        Authentication auth = ctx.getAuthentication();
-        return Optional.ofNullable(auth)
-                .map(Authentication::getPrincipal)
-                .map(c -> (MemberDetails) c)
-                .map(MemberDetails::getMember)
-                .orElse(null);
-//        MemberDetails memberDetails = (MemberDetails) auth.getPrincipal();
-//        return memberDetails.getMember();
+        try {
+            SecurityContext ctx = SecurityContextHolder.getContext();
+            Authentication auth = ctx.getAuthentication();
+            return Optional.ofNullable(auth)
+                    .map(Authentication::getPrincipal)
+                    .map(c -> (MemberDetails) c)
+                    .map(MemberDetails::getMember)
+                    .orElse(null);
+        } catch (Exception e) {
+            log.error("{}", e.toString());
+            throw new ServiceException("未登录或权限过期！", "401");
+        }
     }
 
     @Override

@@ -39,6 +39,12 @@
     <dependencyManagement>
         <dependencies>
 
+            <dependency>
+                <groupId>javax.xml.bind</groupId>
+                <artifactId>jaxb-api</artifactId>
+                <version>2.3.0</version>
+            </dependency>
+
             <!-- Illegal DefaultValue null for parameter type integer -->
             <dependency>
                 <groupId>io.swagger</groupId>
@@ -146,6 +152,35 @@
                 </configuration>
             </plugin>
         </plugins>
+
+        <!-- 打包所有jar包 -->
+        <resources>
+            <resource>
+                <directory>lib</directory>
+                <targetPath>BOOT-INF/lib/</targetPath>
+                <includes>
+                    <include>**/*.jar</include>
+                </includes>
+            </resource>
+
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+            </resource>
+
+        </resources>
     </build>
+
+    <profiles>
+        <profile>
+            <id>dev</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+        <profile>
+            <id>docker</id>
+        </profile>
+    </profiles>
 
 </project>

@@ -21,7 +21,7 @@ spring:
       statement-prepare-after-log-enabled: false
       statement-parameter-set-log-enabled: false
   flyway:
-    enabled: true
+    enabled: false
 
 # 上传文件路径
 pic:
