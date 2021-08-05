@@ -9,12 +9,20 @@ spring:
       initial-size: 5 # 连接池初始化大小
       min-idle: 10 # 最小空闲连接数
       max-active: 20 # 最大连接数
-
   flyway:
     enabled: true
     locations: classpath:db/migration
     baselineOnMigrate: true
     baselineVersion: 1
+  application:
+    name: lsz-mall-admin
+  servlet:
+    multipart:
+      enabled: true # 开启文件上传
+      max-file-size: 10MB # 限制文件上传大小为10M
+
+  profiles:
+    active: dev
 
 mybatis:
 #  type-aliases-package: com.example.domain.model
@@ -25,6 +33,10 @@ mybatis:
     map-underscore-to-camel-case: true
     default-fetch-size: 100
     default-statement-timeout: 30
+  global-config:
+    db-config:
+      logic-delete-value: 1 # 逻辑已删除值(默认为 1)
+      logic-not-delete-value: 0 # 逻辑未删除值(默认为 0)
 
 
 secure.permit-urls:

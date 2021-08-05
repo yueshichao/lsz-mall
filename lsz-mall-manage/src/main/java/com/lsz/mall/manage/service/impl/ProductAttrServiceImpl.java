@@ -3,9 +3,7 @@ package com.lsz.mall.manage.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.lsz.mall.base.entity.ProductAttribute;
-import com.lsz.mall.base.entity.ProductAttributeCategory;
-import com.lsz.mall.base.entity.ProductAttributeParam;
+import com.lsz.mall.base.entity.*;
 import com.lsz.mall.base.vo.CommonPage;
 import com.lsz.mall.manage.dao.ProductAttrCategoryDao;
 import com.lsz.mall.manage.dao.ProductAttrDao;
@@ -14,6 +12,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 @Service
@@ -61,16 +60,41 @@ public class ProductAttrServiceImpl implements ProductAttrService {
 
     @Override
     public int update(Long id, ProductAttributeParam productAttributeParam) {
-        return 0;
+        ProductAttribute productAttribute = new ProductAttribute();
+        BeanUtils.copyProperties(productAttributeParam, productAttribute);
+        productAttribute.setId(id);
+        return productAttrDao.updateById(productAttribute);
     }
 
     @Override
     public ProductAttribute getItem(Long id) {
-        return null;
+        return productAttrDao.selectById(id);
     }
 
     @Override
     public int delete(List<Long> ids) {
-        return 0;
+        ProductAttribute productAttribute = productAttrDao.selectById(ids.get(0));
+        Integer type = productAttribute.getType();
+
+        @NotEmpty Long categoryId = productAttribute.getProductAttributeCategoryId();
+        ProductAttributeCategory productAttributeCategory = productAttrCategoryDao.selectById(categoryId);
+        int count = productAttrDao.deleteBatchIds(ids);
+
+
+        if (type == 0) {
+            int afterCount = productAttributeCategory.getAttributeCount() - count;
+            productAttributeCategory.setAttributeCount(afterCount >= 0 ? afterCount : 0);
+        } else if (type == 1) {
+            int afterCount = productAttributeCategory.getParamCount() - count;
+            productAttributeCategory.setParamCount(afterCount >= 0 ? afterCount : 0);
+        }
+        productAttrCategoryDao.updateById(productAttributeCategory);
+        return count;
     }
+
+    @Override
+    public List<ProductAttrInfo> getProductAttrInfo(Long productCategoryId) {
+        return productAttrDao.getProductAttrInfo(productCategoryId);
+    }
+
 }

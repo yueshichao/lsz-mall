@@ -1,6 +1,7 @@
 package com.lsz.mall.manage.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -8,6 +9,7 @@ import com.lsz.mall.base.entity.*;
 import com.lsz.mall.base.vo.CommonPage;
 import com.lsz.mall.manage.dao.ProductCategoryAttrRelationDao;
 import com.lsz.mall.manage.dao.ProductCategoryDao;
+import com.lsz.mall.manage.dao.ProductDao;
 import com.lsz.mall.manage.service.ProductCategoryService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,9 +66,34 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
 
     }
 
+    @Autowired
+    ProductDao productDao;
+
     @Override
-    public int update(Long id, ProductCategoryParam ProductCategoryParam) {
-        return 0;
+    public int update(Long id, ProductCategoryParam productCategoryParam) {
+        ProductCategory productCategory = new ProductCategory();
+        productCategory.setId(id);
+        BeanUtils.copyProperties(productCategoryParam, productCategory);
+        setCategoryLevel(productCategory);
+
+        Product product = new Product();
+        product.setProductCategoryName(productCategory.getName());
+        LambdaQueryWrapper<Product> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Product::getProductCategoryId, productCategory.getId());
+        productDao.update(product, wrapper);
+
+
+        // 重新建立连接
+        LambdaQueryWrapper<ProductCategoryAttributeRelation> relationWrapper = new LambdaQueryWrapper<>();
+        relationWrapper.eq(ProductCategoryAttributeRelation::getProductCategoryId, id);
+        productCategoryAttrRelationDao.delete(relationWrapper);
+        List<Long> productAttributeIdList = productCategoryParam.getProductAttributeIdList();
+        if (CollectionUtil.isNotEmpty(productAttributeIdList)) {
+            List<ProductCategoryAttributeRelation> relations = productAttributeIdList.stream().map(attrId -> new ProductCategoryAttributeRelation(id, attrId)).collect(Collectors.toList());
+            relations.forEach(r -> productCategoryAttrRelationDao.insert(r));
+        }
+
+        return productCategoryDao.updateById(productCategory);
     }
 
     @Override
@@ -82,22 +109,40 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
 
     @Override
     public int delete(Long id) {
-        return 0;
+        return productCategoryDao.deleteById(id);
     }
 
     @Override
     public ProductCategory getItem(Long id) {
-        return null;
+        return productCategoryDao.selectById(id);
     }
 
     @Override
     public int updateNavStatus(List<Long> ids, Integer navStatus) {
-        return 0;
+        int count = ids.stream()
+                .map(id -> {
+                    ProductCategory productCategory = new ProductCategory(id);
+                    productCategory.setNavStatus(navStatus);
+                    return productCategory;
+                })
+                .map(p -> productCategoryDao.updateById(p))
+                .mapToInt(i -> i)
+                .sum();
+        return count;
     }
 
     @Override
     public int updateShowStatus(List<Long> ids, Integer showStatus) {
-        return 0;
+        int count = ids.stream()
+                .map(id -> {
+                    ProductCategory productCategory = new ProductCategory(id);
+                    productCategory.setShowStatus(showStatus);
+                    return productCategory;
+                })
+                .map(p -> productCategoryDao.updateById(p))
+                .mapToInt(i -> i)
+                .sum();
+        return count;
     }
 
     @Override
@@ -126,6 +171,14 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
 
         return root.getChildren();
     }
+
+    @Override
+    public List<ProductCategory> getList(Integer currentLevel) {
+        LambdaQueryWrapper<ProductCategory> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(ProductCategory::getLevel, currentLevel - 1);
+        return productCategoryDao.selectList(wrapper);
+    }
+
 
     /**
      * 根据分类的parentId设置分类的level
