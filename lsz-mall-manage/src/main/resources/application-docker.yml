@@ -10,7 +10,7 @@ spring:
   flyway:
     enabled: false
 
-# 上传文件路径
+
 pic:
-  url: http://localhost:7070/file/image/
-  filePath: '/tmp/pic'
+  url: http://localhost:7070/file/image/ # 图片url
+  filePath: '/tmp/pic/' # 上传文件路径

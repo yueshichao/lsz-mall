@@ -1,5 +1,6 @@
 package com.lsz.mall.manage.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.lsz.mall.base.entity.ResponseMessage;
 import com.lsz.mall.base.entity.UploadDto;
 import io.swagger.annotations.Api;
@@ -38,12 +39,12 @@ public class FileController {
         log.info("上传文件名：{}", fileName);
         long ttl = System.currentTimeMillis();
         String newFileName = ttl + "_" + fileName;
-//        String filePath = "E:\\tmp\\";
         File dest = new File(filePath + newFileName);
         try {
             file.transferTo(dest);
             log.info("上传成功");
             UploadDto uploadDto = new UploadDto(picUrl + newFileName, newFileName);
+            log.info("updaload = {}", JSON.toJSONString(uploadDto));
             return ResponseMessage.ok(uploadDto);
         } catch (IOException e) {
             log.error(e.toString(), e);
@@ -54,6 +55,7 @@ public class FileController {
     @GetMapping(value = "/image/{fileName}", produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE, MediaType.IMAGE_PNG_VALUE})
     public byte[] image(@PathVariable String fileName) throws Exception {
         String fullFileName = filePath + fileName;
+        log.debug("fullFileName = {}", fullFileName);
         File file = new File(fullFileName);
         FileInputStream inputStream = new FileInputStream(file);
         byte[] bytes = new byte[inputStream.available()];

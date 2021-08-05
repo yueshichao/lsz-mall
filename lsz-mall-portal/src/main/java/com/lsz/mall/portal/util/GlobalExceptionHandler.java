@@ -11,13 +11,17 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Slf4j
 public class GlobalExceptionHandler {
 
-    /**
-     * http请求的方法不正确
-     */
+
     @ExceptionHandler(ServiceException.class)
     @ResponseBody
     public Res serviceExceptionHandler(ServiceException e) {
         return Res.error(e.getMessage(), e.getErrorCode());
+    }
+
+    @ExceptionHandler(Exception.class)
+    @ResponseBody
+    public Res serviceExceptionHandler(Exception e) {
+        return Res.error(e.getMessage(), 500);
     }
 
 

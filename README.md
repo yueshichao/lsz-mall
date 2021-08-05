@@ -20,7 +20,7 @@ docker network create -d bridge mall-network
 
 1. 运行容器
 
-docker run -d --name mall-manage --network mall-network --privileged=true --init -p 7070:7070 -v ~/log:/tmp/log mall-manage
+docker run -d --name mall-manage --network mall-network --privileged=true --init -p 7070:7070 -v ~/mall/log/:/tmp/log/ -v ~/mall/pic/:/tmp/pic/ mall-manage
 docker run -d --name mall-portal --network mall-network --privileged=true --init -p 28018:28018 -v ~/log:/tmp/log mall-portal
 
 ## 配置MySQL
@@ -37,18 +37,16 @@ TODO
 1. docker run -p 80:80 --name nginx -d nginx # 创建一个容器导出配置文件
 2. docker cp nginx:/etc/nginx ~/nginx
 3. mv ~/nginx/nginx ~/nginx/conf
-4. docker cp nginx:/usr/share/nginx/html ~/nginx/
+4. docker cp nginx:/usr/share/nginx/html ~/nginx/static_html
 5. docker stop nginx && docker rm nginx # 删除，准备重新创建容器
 6. docker run -p 80:80 --name nginx \
 --network mall-network \
 --privileged=true \
 -v ~/nginx/static_html/:/usr/share/nginx/ \
+-v ~/mall/pic/:/pic/ \
 -v ~/nginx/logs:/var/log/nginx  \
 -v ~/nginx/conf:/etc/nginx  \
 -d nginx
-
--v ~/nginx/html:/usr/share/nginx/html \
--v ~/nginx/mall:/usr/share/nginx/mall \
 
 ### 配置文件
 
@@ -63,6 +61,11 @@ server {
     location / {
         root   /usr/share/nginx/html;
         index  index.html index.htm;        
+    }
+
+    location /pic {
+        alias  /pic;
+        autoindex on;
     }
 
     location /mall/manage {
