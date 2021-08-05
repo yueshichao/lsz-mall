@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lsz.mall.base.entity.HomeRecommendProduct;
 import com.lsz.mall.base.vo.CommonPage;
 import com.lsz.mall.manage.dao.HomeRecommendProductDao;
+import com.lsz.mall.manage.service.HomeCacheService;
 import com.lsz.mall.manage.service.HomeRecommendProductService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,9 @@ public class HomeRecommendProductServiceImpl implements HomeRecommendProductServ
     @Autowired
     HomeRecommendProductDao homeRecommendProductDao;
 
+    @Autowired
+    HomeCacheService homeCacheService;
+
     @Override
     public int create(List<HomeRecommendProduct> homeRecommendProductList) {
         int count = homeRecommendProductList.stream()
@@ -32,6 +36,7 @@ public class HomeRecommendProductServiceImpl implements HomeRecommendProductServ
                 })
                 .mapToInt(i -> i)
                 .sum();
+        homeCacheService.deleteHomeInfoCache();
         return count;
     }
 
@@ -41,12 +46,16 @@ public class HomeRecommendProductServiceImpl implements HomeRecommendProductServ
                 .eq(HomeRecommendProduct::getId, id);
         HomeRecommendProduct homeRecommendProduct = new HomeRecommendProduct();
         homeRecommendProduct.setSort(sort);
-        return homeRecommendProductDao.update(homeRecommendProduct, wrapper);
+        int update = homeRecommendProductDao.update(homeRecommendProduct, wrapper);
+        homeCacheService.deleteHomeInfoCache();
+        return update;
     }
 
     @Override
     public int delete(List<Long> ids) {
-        return homeRecommendProductDao.deleteBatchIds(ids);
+        int count = homeRecommendProductDao.deleteBatchIds(ids);
+        homeCacheService.deleteHomeInfoCache();
+        return count;
     }
 
     @Override
@@ -55,7 +64,9 @@ public class HomeRecommendProductServiceImpl implements HomeRecommendProductServ
                 .in(HomeRecommendProduct::getId, ids);
         HomeRecommendProduct homeRecommendProduct = new HomeRecommendProduct();
         homeRecommendProduct.setRecommendStatus(recommendStatus);
-        return homeRecommendProductDao.update(homeRecommendProduct, wrapper);
+        int update = homeRecommendProductDao.update(homeRecommendProduct, wrapper);
+        homeCacheService.deleteHomeInfoCache();
+        return update;
     }
 
     @Override

@@ -23,3 +23,7 @@ spring:
       result-set-close-after-log-enabled: false
       statement-prepare-after-log-enabled: false
       statement-parameter-set-log-enabled: false
+
+  redis:
+    host: lsz.env.com
+    port: 6379

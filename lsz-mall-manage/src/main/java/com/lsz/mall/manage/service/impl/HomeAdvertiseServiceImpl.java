@@ -9,6 +9,7 @@ import com.lsz.mall.base.entity.HomeAdvertise;
 import com.lsz.mall.base.vo.CommonPage;
 import com.lsz.mall.manage.dao.HomeAdvertiseDao;
 import com.lsz.mall.manage.service.HomeAdvertiseService;
+import com.lsz.mall.manage.service.HomeCacheService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,16 +24,22 @@ public class HomeAdvertiseServiceImpl implements HomeAdvertiseService {
     @Autowired
     HomeAdvertiseDao homeAdvertiseDao;
 
+    @Autowired
+    HomeCacheService homeCacheService;
+
     @Override
     public int create(HomeAdvertise advertise) {
         advertise.setClickCount(0);
         advertise.setOrderCount(0);
+        homeCacheService.deleteHomeInfoCache();
         return homeAdvertiseDao.insert(advertise);
     }
 
     @Override
     public int delete(List<Long> ids) {
-        return homeAdvertiseDao.deleteBatchIds(ids);
+        int count = homeAdvertiseDao.deleteBatchIds(ids);
+        homeCacheService.deleteHomeInfoCache();
+        return count;
     }
 
     @Override
@@ -42,7 +49,9 @@ public class HomeAdvertiseServiceImpl implements HomeAdvertiseService {
 
         HomeAdvertise homeAdvertise = new HomeAdvertise();
         homeAdvertise.setStatus(status);
-        return homeAdvertiseDao.update(homeAdvertise, wrapper);
+        int count = homeAdvertiseDao.update(homeAdvertise, wrapper);
+        homeCacheService.deleteHomeInfoCache();
+        return count;
     }
 
     @Override
@@ -53,7 +62,9 @@ public class HomeAdvertiseServiceImpl implements HomeAdvertiseService {
     @Override
     public int update(Long id, HomeAdvertise advertise) {
         advertise.setId(id);
-        return homeAdvertiseDao.updateById(advertise);
+        int count = homeAdvertiseDao.updateById(advertise);
+        homeCacheService.deleteHomeInfoCache();
+        return count;
     }
 
     @Override

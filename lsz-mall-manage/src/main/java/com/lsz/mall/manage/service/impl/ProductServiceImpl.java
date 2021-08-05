@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lsz.mall.base.entity.*;
 import com.lsz.mall.base.vo.CommonPage;
 import com.lsz.mall.manage.dao.*;
+import com.lsz.mall.manage.service.HomeCacheService;
 import com.lsz.mall.manage.service.ProductService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.webresources.WarResource;
@@ -45,6 +46,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     SubjectProductRelationDao subjectProductRelationDao;
+
+    @Autowired
+    HomeCacheService homeCacheService;
 
     @Override
     public int create(ProductParam productParam) {
@@ -99,7 +103,7 @@ public class ProductServiceImpl implements ProductService {
                     list.forEach(e -> subjectProductRelationDao.insert(e));
                 });
 
-
+        homeCacheService.deleteHomeInfoCache();
         return count;
     }
 
@@ -201,6 +205,7 @@ public class ProductServiceImpl implements ProductService {
                 });
 
 
+        homeCacheService.deleteHomeInfoCache();
         return count;
     }
 
@@ -232,12 +237,18 @@ public class ProductServiceImpl implements ProductService {
         return productDao.update(product, wrapper);
     }
 
+    @Autowired
+    HomeRecommendProductDao homeRecommendProductDao;
+
+    @Autowired
+    HomeNewProductDao homeNewProductDao;
+
     @Override
     public int updatePublishStatus(List<Long> ids, Integer publishStatus) {
         int count = updateByIds(ids, (product) -> {
             product.setPublishStatus(publishStatus);
         });
-
+        homeCacheService.deleteHomeInfoCache();
         return count;
     }
 
@@ -246,7 +257,7 @@ public class ProductServiceImpl implements ProductService {
         int count = updateByIds(ids, (product) -> {
             product.setRecommandStatus(recommendStatus);
         });
-
+        homeCacheService.deleteHomeInfoCache();
         return count;
     }
 
@@ -256,6 +267,7 @@ public class ProductServiceImpl implements ProductService {
             product.setNewStatus(newStatus);
         });
 
+        homeCacheService.deleteHomeInfoCache();
         return count;
     }
 
@@ -265,6 +277,7 @@ public class ProductServiceImpl implements ProductService {
             product.setDeleteStatus(deleteStatus);
         });
 
+        homeCacheService.deleteHomeInfoCache();
         return count;
     }
 }
