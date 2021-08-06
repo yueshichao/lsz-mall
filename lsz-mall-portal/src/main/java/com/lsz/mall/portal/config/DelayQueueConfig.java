@@ -45,19 +45,11 @@ public class DelayQueueConfig {
         return delayedQueue;
     }
 
-
-    private static final CustomThreadFactory customThreadFactory = new CustomThreadFactory("order-cancel-pool");
-    private static final ThreadPoolExecutor orderCancelPool = new ThreadPoolExecutor(1, 1, 0, TimeUnit.SECONDS, new ArrayBlockingQueue<>(10), customThreadFactory);
-
-    @PostConstruct
-    public void consume() {
-        RBlockingQueue<String> orderDelayConsumerQueue = orderDelayConsumerQueue();
-        orderDelayConsumerQueue.subscribeOnElements((orderId) -> {
-            orderCancelPool.execute(() -> {
-                log.info("orderId = {} 订单过期！", orderId);
-                orderService.cancelOrder(orderId, true);
-            });
-        });
+    @Bean("orderCancelPool")
+    public ThreadPoolExecutor orderCancelPool() {
+        CustomThreadFactory customThreadFactory = new CustomThreadFactory("order-cancel-pool");
+        ThreadPoolExecutor orderCancelPool = new ThreadPoolExecutor(1, 1, 0, TimeUnit.SECONDS, new ArrayBlockingQueue<>(10), customThreadFactory);
+        return orderCancelPool;
     }
 
 }

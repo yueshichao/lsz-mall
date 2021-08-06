@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -61,10 +62,16 @@ public class OrderServiceImpl implements OrderService {
     SkuStockService skuStockService;
 
     @Autowired
+    OrderSettingDao orderSettingDao;
+
+    @Autowired
     RedissonClient redisson;
 
     @Resource(name = "orderDelayQueue")
-    RDelayedQueue orderDelayQueue;
+    RDelayedQueue<String> orderDelayQueue;
+
+    @Resource(name = "orderCancelPool")
+    ThreadPoolExecutor orderCancelPool;
 
     @Override
     public String saveOrder(SaveOrderParam saveOrderParam) {
@@ -174,8 +181,13 @@ public class OrderServiceImpl implements OrderService {
         log.debug("userId = {}, order = {}", currentMember.getId(), JSON.toJSONString(order));
         log.info("userId = {}, 订单编号 = {}", currentMember.getId(), orderSn);
 
-        orderDelayQueue.offer(orderId, 30, TimeUnit.SECONDS);
-        log.info("orderId = {} 订单生成，30s内未付款自动取消！", orderId);
+        orderCancelPool.execute(() -> {
+            Integer overtime = Optional.ofNullable(orderSettingDao.selectOne(null))
+                    .map(OrderSetting::getNormalOrderOvertime)
+                    .orElse(1);
+            log.info("orderId = {} 订单生成，{}min内未付款自动取消！", orderId, overtime);
+            orderDelayQueue.offer(orderId + "", overtime, TimeUnit.MINUTES);
+        });
 
         return orderSn;
     }
