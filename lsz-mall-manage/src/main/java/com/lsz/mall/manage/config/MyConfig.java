@@ -1,27 +1,45 @@
 package com.lsz.mall.manage.config;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.parser.ParserConfig;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alibaba.fastjson.support.config.FastJsonConfig;
 import com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter;
 import com.baomidou.mybatisplus.extension.plugins.PaginationInterceptor;
+import com.lsz.mall.base.entity.ServiceException;
+import com.lsz.mall.base.util.CustomThreadFactory;
 import com.lsz.mall.manage.util.JwtTokenUtil;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.ByteBufInputStream;
+import io.netty.buffer.ByteBufOutputStream;
+import lombok.extern.slf4j.Slf4j;
+import org.redisson.Redisson;
+import org.redisson.api.RedissonClient;
+import org.redisson.client.codec.BaseCodec;
+import org.redisson.client.protocol.Decoder;
+import org.redisson.client.protocol.Encoder;
+import org.redisson.config.Config;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.http.converter.json.GsonHttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 @Configuration
+@Slf4j
 public class MyConfig {
 
 
@@ -42,8 +60,79 @@ public class MyConfig {
         return jwtTokenUtil;
     }
 
-    private static List<MediaType> supportedMediaTypes = new ArrayList<>(17);
+    // redis
+    @Value("${spring.redis.host}")
+    String redisHost;
 
+    @Value("${spring.redis.port}")
+    Integer redisPort;
+
+    @Bean
+    public RedissonClient redissonClient() {
+        Config config = new Config();
+        config.useSingleServer().setDatabase(0)
+                .setAddress("redis://" + redisHost + ":" + redisPort);
+        config.setCodec(fastJsonCodec());
+        RedissonClient redissonClient = Redisson.create(config);
+        return redissonClient;
+    }
+
+    static {
+        // autoType异常，打开会降低安全性
+        ParserConfig.getGlobalInstance().setAutoTypeSupport(true);
+    }
+    // fastjson序列化
+    // https://blog.csdn.net/miaochenfly/article/details/116457365
+    public BaseCodec fastJsonCodec() {
+        return new BaseCodec() {
+            private final Encoder encoder = in -> {
+                ByteBuf out = ByteBufAllocator.DEFAULT.buffer();
+                try {
+                    ByteBufOutputStream os = new ByteBufOutputStream(out);
+                    JSON.writeJSONString(os, in, SerializerFeature.WriteClassName);
+                    return os.buffer();
+                } catch (IOException e) {
+                    out.release();
+                    throw e;
+                } catch (Exception e) {
+                    out.release();
+                    throw new IOException(e);
+                }
+            };
+
+            private final Decoder<Object> decoder = (buf, state) ->
+                    JSON.parseObject(new ByteBufInputStream(buf), Object.class);
+
+            @Override
+            public Decoder<Object> getValueDecoder() {
+                return decoder;
+            }
+
+            @Override
+            public Encoder getValueEncoder() {
+                return encoder;
+            }
+        };
+    }
+
+    // 延迟删除的线程池
+    @Bean("delayDeletedExecutor")
+    public ThreadPoolExecutor delayDeletedExecutor() {
+        CustomThreadFactory customThreadFactory = new CustomThreadFactory("delay-delete");
+        ThreadPoolExecutor delayDeletedExecutor = new ThreadPoolExecutor(
+                1, 2,
+                1, TimeUnit.HOURS,
+                new ArrayBlockingQueue<>(200),
+                customThreadFactory,
+                (r, executor1) -> {
+                    log.error("无线程资源！");
+                });
+        // 可优化，合并任务
+        return delayDeletedExecutor;
+    }
+
+    // fastjson作为response返回的序列化方式
+    private static List<MediaType> supportedMediaTypes = new ArrayList<>(17);
 
     static {
         supportedMediaTypes.add(MediaType.APPLICATION_JSON);

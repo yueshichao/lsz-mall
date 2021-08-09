@@ -3,11 +3,13 @@ package com.lsz.mall.portal.entity;
 import com.lsz.mall.base.entity.ProductCategory;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * 首页分类数据VO(第三级)
  */
 @Data
+@NoArgsConstructor
 public class ThirdLevelCategoryVO {
 
     @ApiModelProperty("当前三级分类id")

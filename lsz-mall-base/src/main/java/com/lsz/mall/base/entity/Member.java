@@ -10,7 +10,7 @@ import java.util.Date;
 
 @Data
 @TableName("ums_member")
-public class Member {
+public class Member implements Cloneable {
 
     @TableId(type = IdType.AUTO)
     private Long id;
@@ -69,4 +69,12 @@ public class Member {
     @ApiModelProperty(value = "历史积分数量")
     private Integer historyIntegration;
 
+    @Override
+    public Member clone() {
+        try {
+            return (Member) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

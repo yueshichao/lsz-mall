@@ -1,9 +1,9 @@
 package com.lsz.mall.manage.service.impl;
 
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lsz.mall.base.entity.*;
@@ -15,6 +15,8 @@ import com.lsz.mall.manage.entity.AdminUserDetails;
 import com.lsz.mall.manage.service.AdminService;
 import com.lsz.mall.manage.util.JwtTokenUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RBucket;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,6 +29,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
@@ -46,6 +49,9 @@ public class AdminServiceImpl implements AdminService {
 
     @Autowired
     AdminRoleRelationDao adminRoleRelationDao;
+
+    @Autowired
+    RedissonClient redisson;
 
     @Override
     public Admin register(AdminParam adminParam) {
@@ -69,6 +75,10 @@ public class AdminServiceImpl implements AdminService {
         String encodePassword = passwordEncoder.encode(admin.getPassword());
         admin.setPassword(encodePassword);
         adminDao.insert(admin);
+
+        RBucket<Admin> adminRBucket = getMemberBucketByUserName(admin.getUsername());
+        adminRBucket.set(admin);
+
         return admin;
     }
 
@@ -91,11 +101,15 @@ public class AdminServiceImpl implements AdminService {
         return token;
     }
 
+    RBucket<Admin> getMemberBucketByUserName(String username) {
+        RBucket<Admin> adminRBucket = redisson.getBucket("mall:admin:username:" + username);
+        adminRBucket.expire(1, TimeUnit.HOURS);
+        return adminRBucket;
+    }
+
     @Override
     public UserDetails loadUserByUsername(String username) {
-        QueryWrapper<Admin> queryWrapper = new QueryWrapper<>();
-        queryWrapper.lambda().eq(AdminParam::getUsername, username);
-        Admin admin = adminDao.selectOne(queryWrapper);
+        Admin admin = getAdminByUsername(username);
 
         if (admin == null) {
             throw new UsernameNotFoundException("用户名或密码错误！");
@@ -118,7 +132,14 @@ public class AdminServiceImpl implements AdminService {
     public Admin getAdminByUsername(String username) {
         QueryWrapper<Admin> queryWrapper = new QueryWrapper<>();
         queryWrapper.lambda().eq(AdminParam::getUsername, username);
-        Admin admin = adminDao.selectOne(queryWrapper);
+        Admin admin;
+        // 缓存中查找
+        RBucket<Admin> adminRBucket = getMemberBucketByUserName(username);
+        admin = adminRBucket.get();
+        if (admin == null) {
+            admin = adminDao.selectOne(queryWrapper);
+            adminRBucket.set(admin);
+        }
         return admin;
     }
 
@@ -156,7 +177,12 @@ public class AdminServiceImpl implements AdminService {
         admin.setId(id);
         // 加盐保存密码
         admin.setPassword(passwordEncoder.encode(admin.getPassword()));
-        return adminDao.updateById(admin);
+        int count = adminDao.updateById(admin);
+        // 更新后删除缓存
+        RBucket<Admin> adminRBucket = getMemberBucketByUserName(admin.getUsername());
+        // 考虑延迟双删
+        adminRBucket.delete();
+        return count;
     }
 
     @Override
@@ -174,13 +200,20 @@ public class AdminServiceImpl implements AdminService {
         }
 
         admin.setPassword(passwordEncoder.encode(admin.getPassword()));
+        int count = adminDao.updateById(admin);
 
-        return adminDao.updateById(admin);
+        RBucket<Admin> adminRBucket = getMemberBucketByUserName(admin.getUsername());
+        adminRBucket.delete();
+        return count;
     }
 
     @Override
     public int delete(Long id) {
+        Admin admin = adminDao.selectById(id);
         int count = adminDao.deleteById(id);
+        log.debug("删除用户：{}", JSON.toJSONString(admin));
+        RBucket<Admin> adminRBucket = getMemberBucketByUserName(admin.getUsername());
+        adminRBucket.delete();
         return count;
     }
 

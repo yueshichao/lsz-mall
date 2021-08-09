@@ -16,6 +16,8 @@ import com.lsz.mall.portal.entity.HomeConfigGoodsVO;
 import com.lsz.mall.portal.entity.HomeInfoVO;
 import com.lsz.mall.portal.service.HomeService;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RBucket;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -38,9 +40,16 @@ public class HomeServiceImpl implements HomeService {
     @Autowired
     HomeRecommendProductDao homeRecommendProductDao;
 
+    @Autowired
+    RedissonClient redisson;
 
     @Override
     public HomeInfoVO homeInfos() {
+        RBucket<HomeInfoVO> homeInfoBucket = redisson.getBucket("mall:home:infos");
+        HomeInfoVO result = homeInfoBucket.get();
+        if (result != null) {
+            return result;
+        }
 
         LambdaQueryWrapper<HomeAdvertise> advertiseWrapper = new LambdaQueryWrapper<>();
         advertiseWrapper.eq(HomeAdvertise::getStatus, 1)
@@ -53,9 +62,8 @@ public class HomeServiceImpl implements HomeService {
 
         // 热销，新品，推荐
         LambdaQueryWrapper<HomeNewProduct> homeNewProductWrapper = new LambdaQueryWrapper<HomeNewProduct>()
-                .eq(HomeNewProduct::getRecommendStatus, 1);
-        Set<Long> homeNewProductIds = Optional.ofNullable(homeNewProductDao.selectPage(new Page<>(1, 5), homeNewProductWrapper))
-                .map(IPage::getRecords)
+                .eq(HomeNewProduct::getRecommendStatus, 1).orderByDesc(HomeNewProduct::getSort);
+        Set<Long> homeNewProductIds = Optional.ofNullable(homeNewProductDao.selectList(homeNewProductWrapper))
                 .orElseGet(ArrayList::new)
                 .stream()
                 .map(HomeNewProduct::getProductId)
@@ -63,9 +71,8 @@ public class HomeServiceImpl implements HomeService {
 
 
         LambdaQueryWrapper<HomeRecommendProduct> homeRecommendProductWrapper = new LambdaQueryWrapper<HomeRecommendProduct>()
-                .eq(HomeRecommendProduct::getRecommendStatus, 1);
-        Set<Long> homeRecommendProdctIds = Optional.ofNullable(homeRecommendProductDao.selectPage(new Page<>(1, 5), homeRecommendProductWrapper))
-                .map(IPage::getRecords)
+                .eq(HomeRecommendProduct::getRecommendStatus, 1).orderByDesc(HomeRecommendProduct::getSort);
+        Set<Long> homeRecommendProdctIds = Optional.ofNullable(homeRecommendProductDao.selectList(homeRecommendProductWrapper))
                 .orElseGet(ArrayList::new)
                 .stream()
                 .map(HomeRecommendProduct::getProductId)
@@ -96,6 +103,8 @@ public class HomeServiceImpl implements HomeService {
                 .collect(Collectors.toList());
 
 
-        return new HomeInfoVO(carouselVOS, homeNewProducts, homeRecommendProducts, homeRecommendProducts);
+        result = new HomeInfoVO(carouselVOS, homeNewProducts, homeRecommendProducts, homeRecommendProducts);
+        homeInfoBucket.set(result);
+        return result;
     }
 }

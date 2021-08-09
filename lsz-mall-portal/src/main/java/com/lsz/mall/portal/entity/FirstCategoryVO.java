@@ -3,14 +3,15 @@ package com.lsz.mall.portal.entity;
 import com.lsz.mall.base.entity.ProductCategory;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
  * 首页分类数据VO
  */
 @Data
+@NoArgsConstructor
 public class FirstCategoryVO {
 
     @ApiModelProperty("当前一级分类id")

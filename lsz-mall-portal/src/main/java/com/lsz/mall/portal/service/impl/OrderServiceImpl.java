@@ -14,11 +14,17 @@ import com.lsz.mall.portal.entity.OrderListVO;
 import com.lsz.mall.portal.entity.SaveOrderParam;
 import com.lsz.mall.portal.service.*;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RDelayedQueue;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -54,6 +60,18 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     SkuStockService skuStockService;
+
+    @Autowired
+    OrderSettingDao orderSettingDao;
+
+    @Autowired
+    RedissonClient redisson;
+
+    @Resource(name = "orderDelayQueue")
+    RDelayedQueue<String> orderDelayQueue;
+
+    @Resource(name = "orderCancelPool")
+    ThreadPoolExecutor orderCancelPool;
 
     @Override
     public String saveOrder(SaveOrderParam saveOrderParam) {
@@ -162,6 +180,15 @@ public class OrderServiceImpl implements OrderService {
 
         log.debug("userId = {}, order = {}", currentMember.getId(), JSON.toJSONString(order));
         log.info("userId = {}, 订单编号 = {}", currentMember.getId(), orderSn);
+
+        orderCancelPool.execute(() -> {
+            Integer overtime = Optional.ofNullable(orderSettingDao.selectOne(null))
+                    .map(OrderSetting::getNormalOrderOvertime)
+                    .orElse(1);
+            log.info("orderId = {} 订单生成，{}min内未付款自动取消！", orderId, overtime);
+            orderDelayQueue.offer(orderId + "", overtime, TimeUnit.MINUTES);
+        });
+
         return orderSn;
     }
 
@@ -264,17 +291,32 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public int cancelOrder(String orderId) {
-        Member currentMember = userService.getCurrentMember();
-        log.info("userId = {}, 取消订单, orderId = {}", currentMember.getId(), orderId);
-        LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<Order>()
-                .eq(Order::getMemberId, currentMember.getId())
-                .eq(Order::getId, orderId);
+        return cancelOrder(orderId, false);
+    }
 
-        // TODO 锁住订单
+    public int cancelOrder(String orderId, boolean auto) {
+        Member currentMember = userService.getCurrentMember();
+        log.info("currentMember = {}, 取消订单, auto = {}, orderId = {}", currentMember, auto, orderId);
+        LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<Order>()
+                .eq(Order::getId, orderId);
+        if (!auto) {
+            wrapper.eq(Order::getMemberId, currentMember.getId());
+        }
+
         // 释放原本锁住的库存
         Order order = orderDao.selectById(orderId);
-        synchronized (orderId.intern()) {
-            if (OrderStatusEnum.TO_PAY.getCode() == order.getStatus()) {
+
+        RLock orderLock = redisson.getLock("order:id:" + orderId);
+        orderLock.lock();
+        log.info("订单详情 = {}", JSON.toJSONString(order));
+        try {
+            Integer status = order.getStatus();
+            if (auto && status != OrderStatusEnum.TO_PAY.getCode()) {
+                log.warn("orderId = {}，订单状态不是待支付状态！", orderId);
+                return 0;
+            }
+
+            if (OrderStatusEnum.TO_PAY.getCode() == status) {
                 LambdaQueryWrapper<OrderItem> cartItemWrapper = new LambdaQueryWrapper<OrderItem>()
                         .eq(OrderItem::getOrderId, orderId);
                 List<OrderItem> orderItems = orderItemDao.selectList(cartItemWrapper);
@@ -286,7 +328,7 @@ public class OrderServiceImpl implements OrderService {
                     log.debug("未付款释放锁库存 productSkuId = {}, count = {}", productSkuId, count);
                     skuStockDao.lockStock(productSkuId, -count);
                 }
-            } else if(OrderStatusEnum.TO_POST_PRODUCT.getCode() == order.getStatus()) {
+            } else if (OrderStatusEnum.TO_POST_PRODUCT.getCode() == status) {
                 LambdaQueryWrapper<OrderItem> cartItemWrapper = new LambdaQueryWrapper<OrderItem>()
                         .eq(OrderItem::getOrderId, orderId);
                 List<OrderItem> orderItems = orderItemDao.selectList(cartItemWrapper);
@@ -299,17 +341,15 @@ public class OrderServiceImpl implements OrderService {
                     skuStockDao.incrTrueStock(productSkuId, count);
                 }
             } else {
-                log.warn("取消订单，order id = {}, status = {}", order.getId(), order.getStatus());
+                log.warn("取消订单，order id = {}, status = {}", order.getId(), status);
             }
+            order.setStatus(OrderStatusEnum.INVALID.getCode());
+            int count = orderDao.update(order, wrapper);
+            return count;
+        } finally {
+            orderLock.unlock();
         }
 
-
-//        Order order = new Order();
-        order.setStatus(OrderStatusEnum.INVALID.getCode());
-        int count = orderDao.update(order, wrapper);
-
-
-        return count;
     }
 
     @Override

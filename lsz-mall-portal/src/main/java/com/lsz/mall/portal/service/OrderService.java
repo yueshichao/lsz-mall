@@ -21,6 +21,9 @@ public interface OrderService {
     int cancelOrder(String orderId);
 
     @Transactional
+    int cancelOrder(String orderId, boolean auto);
+
+    @Transactional
     int confirmReceive(String orderId);
 
     @Transactional

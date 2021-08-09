@@ -3,6 +3,7 @@ package com.lsz.mall.portal.entity;
 import com.lsz.mall.base.entity.ProductCategory;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
@@ -10,6 +11,7 @@ import java.util.List;
  * 首页分类数据VO(第二级)
  */
 @Data
+@NoArgsConstructor
 public class SecondLevelCategoryVO {
 
     @ApiModelProperty("当前二级分类id")

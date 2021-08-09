@@ -1,6 +1,7 @@
 package com.lsz.mall.portal.service.impl;
 
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.lsz.mall.base.entity.Member;
 import com.lsz.mall.base.entity.ServiceException;
@@ -10,8 +11,9 @@ import com.lsz.mall.portal.dao.MemberDao;
 import com.lsz.mall.portal.entity.MemberDetails;
 import com.lsz.mall.portal.service.UserService;
 import com.lsz.mall.portal.util.JwtTokenUtil;
-import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RBucket;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.core.Authentication;
@@ -23,6 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
@@ -36,6 +39,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     PasswordEncoder passwordEncoder;
+
+    @Autowired
+    RedissonClient redisson;
 
     @Override
     public String login(UserRegisterParam userLoginParam) {
@@ -53,11 +59,21 @@ public class UserServiceImpl implements UserService {
 
         MemberDetails memberDetails = new MemberDetails(member);
         String token = jwtTokenUtil.generateToken(memberDetails);
+        // 设置缓存
+        RBucket<Member> userBucket = getUserBucketByUsername(member.getUsername());
+        userBucket.set(member);
+
         return token;
+    }
+
+    private RBucket<Member> getUserBucketByUsername(String username) {
+        RBucket<Member> userBucket = redisson.getBucket("mall:user:id:" + username);
+        return userBucket;
     }
 
     @Override
     public Boolean logout(UserRegisterParam userLoginParam) {
+        log.info("退出登录：{}", JSON.toJSONString(userLoginParam));
         return true;
     }
 
@@ -79,17 +95,31 @@ public class UserServiceImpl implements UserService {
         if (insertCount <= 0) {
             throw new ServiceException("注册失败！");
         }
+        RBucket<Member> userBucket = getUserBucketByUsername(member.getUsername());
+        userBucket.set(member);
         return "注册成功！";
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) {
-        LambdaQueryWrapper<Member> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Member::getUsername, username);
-        Member member = memberDao.selectOne(wrapper);
+        Member member = getMemberByUsername(username);
 
         MemberDetails memberDetails = new MemberDetails(member);
         return memberDetails;
+    }
+
+    private Member getMemberByUsername(String username) {
+        Member member;
+        RBucket<Member> memberBucket = getUserBucketByUsername(username);
+        member = memberBucket.get();
+        if (member != null) {
+            return member;
+        }
+        LambdaQueryWrapper<Member> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Member::getUsername, username);
+        member = memberDao.selectOne(wrapper);
+        memberBucket.set(member, 5, TimeUnit.HOURS);
+        return member;
     }
 
     @Override
@@ -110,7 +140,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public int updateInfo(UpdateUserInfoParam userInfoParam) {
-        Member currentMember = getCurrentMember();
+        Member preMember = getCurrentMember();
+        Member currentMember = preMember.clone();
         currentMember.setUsername(userInfoParam.getLoginName());
         currentMember.setNickname(userInfoParam.getNickName());
 
@@ -119,6 +150,11 @@ public class UserServiceImpl implements UserService {
             currentMember.setPassword(passwordEncoder.encode(newPassword));
         }
         currentMember.setPersonalizedSignature(userInfoParam.getIntroduceSign());
-        return memberDao.updateById(currentMember);
+        int count = memberDao.updateById(currentMember);
+
+        RBucket<Member> preUserBucket = getUserBucketByUsername(preMember.getUsername());
+        preUserBucket.delete();
+
+        return count;
     }
 }

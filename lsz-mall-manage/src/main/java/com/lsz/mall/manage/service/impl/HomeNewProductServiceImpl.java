@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lsz.mall.base.entity.HomeNewProduct;
 import com.lsz.mall.base.vo.CommonPage;
 import com.lsz.mall.manage.dao.HomeNewProductDao;
+import com.lsz.mall.manage.service.HomeCacheService;
 import com.lsz.mall.manage.service.HomeNewProductService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,9 @@ public class HomeNewProductServiceImpl implements HomeNewProductService {
     @Autowired
     HomeNewProductDao homeNewProductDao;
 
+    @Autowired
+    HomeCacheService homeCacheService;
+
     @Override
     public int create(List<HomeNewProduct> homeNewProductList) {
         int count = homeNewProductList.stream()
@@ -32,6 +36,7 @@ public class HomeNewProductServiceImpl implements HomeNewProductService {
                 })
                 .mapToInt(i -> i)
                 .sum();
+        homeCacheService.deleteHomeInfoCache();
         return count;
     }
 
@@ -41,12 +46,15 @@ public class HomeNewProductServiceImpl implements HomeNewProductService {
                 .eq(HomeNewProduct::getId, id);
         HomeNewProduct homeNewProduct = new HomeNewProduct();
         homeNewProduct.setSort(sort);
+        homeCacheService.deleteHomeInfoCache();
         return homeNewProductDao.update(homeNewProduct, wrapper);
     }
 
     @Override
     public int delete(List<Long> ids) {
-        return homeNewProductDao.deleteBatchIds(ids);
+        int count = homeNewProductDao.deleteBatchIds(ids);
+        homeCacheService.deleteHomeInfoCache();
+        return count;
     }
 
     @Override
@@ -55,7 +63,9 @@ public class HomeNewProductServiceImpl implements HomeNewProductService {
                 .in(HomeNewProduct::getId, ids);
         HomeNewProduct homeNewProduct = new HomeNewProduct();
         homeNewProduct.setRecommendStatus(recommendStatus);
-        return homeNewProductDao.update(homeNewProduct, wrapper);
+        int update = homeNewProductDao.update(homeNewProduct, wrapper);
+        homeCacheService.deleteHomeInfoCache();
+        return update;
     }
 
     @Override

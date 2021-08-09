@@ -1,6 +1,7 @@
 package com.lsz.mall.manage.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.thread.ThreadUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -11,17 +12,24 @@ import com.lsz.mall.manage.dao.ProductCategoryAttrRelationDao;
 import com.lsz.mall.manage.dao.ProductCategoryDao;
 import com.lsz.mall.manage.dao.ProductDao;
 import com.lsz.mall.manage.service.ProductCategoryService;
+import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RBucket;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class ProductCategoryServiceImpl implements ProductCategoryService {
 
     @Autowired
@@ -29,6 +37,12 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
 
     @Autowired
     ProductCategoryAttrRelationDao productCategoryAttrRelationDao;
+
+    @Autowired
+    RedissonClient redisson;
+
+    @Resource(name = "delayDeletedExecutor")
+    ThreadPoolExecutor delayDeletedExecutor;
 
     @Override
     public int create(ProductCategoryParam productCategoryParam) {
@@ -43,8 +57,22 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
         List<Long> productAttributeIdList = productCategoryParam.getProductAttributeIdList();
         insertRelationList(productCategory.getId(), productAttributeIdList);
 
+        deleteCategoryCache();
 
         return count;
+    }
+
+    private void deleteCategoryCache() {
+        // 删除缓存
+        String key = "mall:category:all";
+        RBucket<Object> bucket = redisson.getBucket(key);
+        bucket.delete();
+        // 此种方式延迟删除，如果任务积压，会在超过1s的时间删除
+        delayDeletedExecutor.execute(() -> {
+            ThreadUtil.sleep(1000);
+            log.debug("删除key = {}", key);
+            bucket.delete();
+        });
     }
 
     /**
@@ -93,7 +121,10 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
             relations.forEach(r -> productCategoryAttrRelationDao.insert(r));
         }
 
-        return productCategoryDao.updateById(productCategory);
+        int count = productCategoryDao.updateById(productCategory);
+        deleteCategoryCache();
+
+        return count;
     }
 
     @Override
@@ -109,7 +140,9 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
 
     @Override
     public int delete(Long id) {
-        return productCategoryDao.deleteById(id);
+        int count = productCategoryDao.deleteById(id);
+        deleteCategoryCache();
+        return count;
     }
 
     @Override
@@ -128,6 +161,7 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
                 .map(p -> productCategoryDao.updateById(p))
                 .mapToInt(i -> i)
                 .sum();
+        deleteCategoryCache();
         return count;
     }
 
@@ -142,6 +176,7 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
                 .map(p -> productCategoryDao.updateById(p))
                 .mapToInt(i -> i)
                 .sum();
+        deleteCategoryCache();
         return count;
     }
 

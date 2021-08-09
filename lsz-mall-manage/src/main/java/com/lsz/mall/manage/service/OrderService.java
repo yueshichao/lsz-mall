@@ -28,6 +28,7 @@ public interface OrderService {
     /**
      * 批量删除订单
      */
+    @Transactional
     int delete(List<Long> ids);
 
     /**
